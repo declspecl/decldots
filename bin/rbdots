@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/rbdots"
+require "optparse"
+
+def show_help
+  puts <<~HELP
+    Rbdots - Declarative Dotfile Management
+
+    Usage:
+      rbdots apply <config_file>    Apply a configuration file
+      rbdots diff <config_file>     Show what changes would be made
+      rbdots example               Run the example configuration
+      rbdots help                  Show this help message
+
+    Examples:
+      rbdots example               # Run example config (shows diff only)
+      rbdots apply my_config.rb    # Apply your configuration
+      rbdots diff my_config.rb     # Preview changes
+
+    Configuration files should be Ruby files that define a configuration
+    using the Rbdots DSL. See examples/example_config.rb for reference.
+  HELP
+end
+
+def load_config_file(file_path)
+  unless File.exist?(file_path)
+    puts "Error: Configuration file not found: #{file_path}"
+    exit 1
+  end
+
+  # Load the configuration file in a clean context
+  config_content = File.read(file_path)
+  eval(config_content)
+rescue StandardError => e
+  puts "Error loading configuration file: #{e.message}"
+  exit 1
+end
+
+def run_example
+  puts "Running example configuration..."
+  puts
+  load_config_file(File.join(__dir__, "../examples/example_config.rb"))
+end
+
+# Parse command line arguments
+command = ARGV[0]
+config_file = ARGV[1]
+
+case command
+when "apply"
+  if config_file.nil?
+    puts "Error: Please specify a configuration file"
+    puts "Usage: rbdots apply <config_file>"
+    exit 1
+  end
+
+  puts "Applying configuration from: #{config_file}"
+  config = load_config_file(config_file)
+
+  if Rbdots.apply(config)
+    puts "Configuration applied successfully!"
+  else
+    puts "Failed to apply configuration"
+    exit 1
+  end
+
+when "diff"
+  if config_file.nil?
+    puts "Error: Please specify a configuration file"
+    puts "Usage: rbdots diff <config_file>"
+    exit 1
+  end
+
+  puts "Showing configuration diff for: #{config_file}"
+  config = load_config_file(config_file)
+
+  require "pp"
+  pp Rbdots.diff(config)
+
+when "example"
+  run_example
+
+when "help", "--help", "-h", nil
+  show_help
+
+else
+  puts "Error: Unknown command '#{command}'"
+  puts
+  show_help
+  exit 1
+end
