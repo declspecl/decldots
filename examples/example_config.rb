@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # typed: false
+# frozen_string_literal: true
 
 # Example Rbdots configuration demonstrating MVP functionality
 # Run this with: ruby examples/example_config.rb

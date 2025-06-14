@@ -4,17 +4,17 @@
 require_relative "base"
 
 module Rbdots
-    module Adapters
-        # Homebrew package manager adapter
+    module PackageManagers
+        # Homebrew package manager implementation
         class Homebrew < Base
             extend T::Sig
 
             sig { void }
             def initialize
+                super
                 ensure_package_manager_available!
             end
 
-            # Install packages and casks
             sig { override.params(packages: T::Array[String]).void }
             def install(packages)
                 return if packages.empty?
@@ -30,7 +30,6 @@ module Rbdots
                 end
             end
 
-            # Install Homebrew casks (GUI applications)
             sig { params(casks: T::Array[String]).void }
             def install_casks(casks)
                 return if casks.empty?
@@ -46,7 +45,6 @@ module Rbdots
                 end
             end
 
-            # Add Homebrew taps (third-party repositories)
             sig { params(taps: T::Array[String]).void }
             def add_taps(taps)
                 return if taps.empty?
@@ -62,7 +60,6 @@ module Rbdots
                 end
             end
 
-            # Uninstall packages
             sig { override.params(packages: T::Array[String]).void }
             def uninstall(packages)
                 return if packages.empty?
@@ -78,7 +75,6 @@ module Rbdots
                 end
             end
 
-            # Update packages
             sig { override.params(packages: T.nilable(T::Array[String])).void }
             def update(packages = nil)
                 if packages.nil?
@@ -97,14 +93,9 @@ module Rbdots
                 end
             end
 
-            # Check if a package is installed
             sig { override.params(package: String).returns(T::Boolean) }
             def installed?(package)
-                # In dry-run mode we have no reliable way of knowing what is
-                # installed on the host. Presume the package is _not_ installed
-                # so that the diff accurately reflects the intention of the
-                # configuration. If the user is running in live mode the real
-                # `brew list` check below will be executed.
+                # See Base implementation for dry-run comment.
                 return false if Rbdots.dry_run?
 
                 execute_command("brew list #{package}", capture_output: true)
@@ -113,7 +104,6 @@ module Rbdots
                 false
             end
 
-            # Check if a cask is installed
             sig { params(cask: String).returns(T::Boolean) }
             def cask_installed?(cask)
                 return false if Rbdots.dry_run?
@@ -124,7 +114,6 @@ module Rbdots
                 false
             end
 
-            # Check if a tap exists
             sig { params(tap: String).returns(T::Boolean) }
             def tap_exists?(tap)
                 return false if Rbdots.dry_run?
@@ -135,7 +124,6 @@ module Rbdots
                 false
             end
 
-            # Get list of installed packages
             sig { override.returns(T::Array[String]) }
             def list_installed
                 result = T.cast(execute_command("brew list --formula", capture_output: true), String)
@@ -144,7 +132,6 @@ module Rbdots
                 []
             end
 
-            # Get list of installed casks
             sig { returns(T::Array[String]) }
             def list_installed_casks
                 result = T.cast(execute_command("brew list --cask", capture_output: true), String)
@@ -153,7 +140,6 @@ module Rbdots
                 []
             end
 
-            # Get list of available updates
             sig { returns(T::Array[String]) }
             def list_outdated
                 result = T.cast(execute_command("brew outdated", capture_output: true), String)
@@ -162,7 +148,6 @@ module Rbdots
                 []
             end
 
-            # Get information about a package
             sig { params(package: String).returns(T::Hash[String, T.untyped]) }
             def package_info(package)
                 result = T.cast(execute_command("brew info #{package} --json", capture_output: true), String)
@@ -172,7 +157,6 @@ module Rbdots
                 {}
             end
 
-            # Search for packages
             sig { params(query: String).returns(T::Array[String]) }
             def search(query)
                 result = T.cast(execute_command("brew search #{query}", capture_output: true), String)
@@ -181,14 +165,12 @@ module Rbdots
                 []
             end
 
-            # Clean up old versions and cache
             sig { void }
             def cleanup
                 puts "Cleaning up Homebrew..."
                 execute_command("brew cleanup")
             end
 
-            # Show Homebrew system information
             sig { void }
             def doctor
                 puts "Running Homebrew doctor..."
@@ -197,7 +179,6 @@ module Rbdots
 
             protected
 
-            # Ensure Homebrew is available
             sig { void }
             def ensure_package_manager_available!
                 return if command_exists?("brew")

@@ -15,12 +15,10 @@ module Rbdots
             @dotfiles_manager = T.let(DotfilesManager.new, DotfilesManager)
         end
 
-        # Apply a configuration to the system
         sig { params(config: Rbdots::DSL::Configuration).returns(T::Boolean) }
         def apply_configuration(config)
             validate_configuration(config)
 
-            # Create checkpoint for rollback
             checkpoint = @state_manager.create_checkpoint
 
             begin
@@ -37,7 +35,6 @@ module Rbdots
             end
         end
 
-        # Show what changes would be applied without actually applying them
         sig { params(config: Rbdots::DSL::Configuration).returns(T::Hash[String, T.untyped]) }
         def diff_configuration(config)
             validate_configuration(config)
@@ -51,7 +48,6 @@ module Rbdots
             changes
         end
 
-        # Rollback to a previous checkpoint
         sig { params(checkpoint: String).returns(T::Boolean) }
         def rollback_to_checkpoint(checkpoint)
             @state_manager.rollback_to(checkpoint)
@@ -62,22 +58,18 @@ module Rbdots
 
         private
 
-        # Validate the configuration before applying
         sig { params(config: Rbdots::DSL::Configuration).returns(T::Boolean) }
         def validate_configuration(config)
             raise ValidationError, "Configuration cannot be nil" if config.nil?
 
-            # Additional validation can be added here
             true
         end
 
-        # Apply package configurations
         sig { params(packages: T::Hash[Symbol, T.untyped]).void }
         def apply_packages(packages)
-            packages.each do |adapter_name, package_config|
+            packages.each do |package_manager_name, package_config|
                 if Rbdots.dry_run?
-                    # In dry run mode, just show what would be done
-                    puts "Would configure #{adapter_name} packages:"
+                    puts "Would configure #{package_manager_name} packages:"
                     puts "  Taps: #{package_config.taps.join(", ")}" if package_config.taps.any?
                     if package_config.packages_to_install.any?
                         puts "  Install: #{package_config.packages_to_install.join(", ")}"
@@ -89,43 +81,38 @@ module Rbdots
                     next
                 end
 
-                adapter_class = Rbdots.get_adapter(adapter_name)
-                adapter = adapter_class.new
+                manager_class = Rbdots.get_package_manager(package_manager_name)
+                manager = manager_class.new
 
-                # Handle Homebrew-specific features using type casting
-                if adapter_name == :homebrew
-                    homebrew_adapter = T.cast(adapter, Rbdots::Adapters::Homebrew)
-                    homebrew_adapter.add_taps(package_config.taps) if package_config.taps.any?
-                    homebrew_adapter.install_casks(package_config.casks) if package_config.casks.any?
+                if package_manager_name == :homebrew
+                    homebrew_manager = T.cast(manager, Rbdots::PackageManagers::Homebrew)
+                    homebrew_manager.add_taps(package_config.taps) if package_config.taps.any?
+                    homebrew_manager.install_casks(package_config.casks) if package_config.casks.any?
                 end
 
-                # Install regular packages
                 if package_config.packages_to_install.any?
                     puts "Installing packages: #{package_config.packages_to_install.join(", ")}"
-                    adapter.install(package_config.packages_to_install)
+                    manager.install(package_config.packages_to_install)
                 end
 
-                # Uninstall packages
                 if package_config.packages_to_uninstall.any?
                     puts "Uninstalling packages: #{package_config.packages_to_uninstall.join(", ")}"
-                    adapter.uninstall(package_config.packages_to_uninstall)
+                    manager.uninstall(package_config.packages_to_uninstall)
                 end
             end
         end
 
-        # Apply program configurations
         sig { params(programs: T::Hash[Symbol, T.untyped]).void }
         def apply_programs(programs)
             programs.each do |program_name, program_config|
-                handler_class = Rbdots.get_handler(program_name)
-                handler = handler_class.new
+                program_class = Rbdots.get_program(program_name)
+                program = program_class.new
 
                 puts "Configuring #{program_name}..."
-                handler.configure(program_config.options)
+                program.configure(program_config.options)
             end
         end
 
-        # Apply dotfiles configurations
         sig { params(dotfiles: T.nilable(Rbdots::DSL::Dotfiles)).void }
         def apply_dotfiles(dotfiles)
             return unless dotfiles
@@ -140,19 +127,18 @@ module Rbdots
             end
         end
 
-        # Show package differences
         sig { params(packages: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
         def diff_packages(packages)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 
-            packages.each do |adapter_name, package_config|
-                adapter_class = Rbdots.get_adapter(adapter_name)
-                adapter = adapter_class.new
+            packages.each do |package_manager_name, package_config|
+                manager_class = Rbdots.get_package_manager(package_manager_name)
+                manager = manager_class.new
 
-                to_install = package_config.packages_to_install.reject { |pkg| adapter.installed?(pkg) }
-                to_uninstall = package_config.packages_to_uninstall.select { |pkg| adapter.installed?(pkg) }
+                to_install = package_config.packages_to_install.reject { |pkg| manager.installed?(pkg) }
+                to_uninstall = package_config.packages_to_uninstall.select { |pkg| manager.installed?(pkg) }
 
-                changes[adapter_name] = {
+                changes[package_manager_name] = {
                     install: to_install,
                     uninstall: to_uninstall
                 }
@@ -161,22 +147,20 @@ module Rbdots
             changes
         end
 
-        # Show program configuration differences
         sig { params(programs: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
         def diff_programs(programs)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 
             programs.each do |program_name, program_config|
-                handler_class = Rbdots.get_handler(program_name)
-                handler = handler_class.new
+                program_class = Rbdots.get_program(program_name)
+                program = program_class.new
 
-                changes[program_name] = handler.diff_configuration(program_config.options)
+                changes[program_name] = program.diff_configuration(program_config.options)
             end
 
             changes
         end
 
-        # Show dotfiles differences
         sig { params(dotfiles: T.nilable(Rbdots::DSL::Dotfiles)).returns(T::Hash[Symbol, T.untyped]) }
         def diff_dotfiles(dotfiles)
             changes = T.let({ links: [] }, T::Hash[Symbol, T.untyped])

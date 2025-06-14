@@ -16,20 +16,17 @@ module Rbdots
                 @source_directory = T.let(File.expand_path("~/.rbdots/dotfiles"), String)
             end
 
-            # Set the source directory for dotfiles
             sig { params(directory: String).void }
             def set_source_directory(directory)
                 @source_directory = File.expand_path(directory)
             end
 
-            # Allow source_directory to be called as both getter and setter
             sig { params(directory: T.nilable(String)).returns(String) }
             def source_directory(directory = nil)
                 set_source_directory(directory) if directory
                 @source_directory
             end
 
-            # Link a dotfile configuration
             sig { params(name: String, mutable: T::Boolean, target: T.nilable(String)).void }
             def link(name, mutable: false, target: nil)
                 target_path = target || File.expand_path("~/.config/#{name}")
@@ -42,25 +39,21 @@ module Rbdots
                 }
             end
 
-            # Link multiple dotfiles with the same mutability setting
             sig { params(names: T::Array[String], mutable: T::Boolean).void }
             def link_multiple(names, mutable: false)
                 names.each { |name| link(name, mutable: mutable) }
             end
 
-            # Link a mutable dotfile (convenience method)
             sig { params(name: String, target: T.nilable(String)).void }
             def link_mutable(name, target: nil)
                 link(name, mutable: true, target: target)
             end
 
-            # Link an immutable dotfile (convenience method)
             sig { params(name: String, target: T.nilable(String)).void }
             def link_immutable(name, target: nil)
                 link(name, mutable: false, target: target)
             end
 
-            # Copy a file instead of linking
             sig { params(source: String, target: String, backup: T::Boolean).void }
             def copy(source, target, backup: true)
                 source_path = File.join(@source_directory, source)
@@ -76,7 +69,6 @@ module Rbdots
                 }
             end
 
-            # Create a template-based configuration
             sig { params(template: String, target: String, variables: T::Hash[T.any(String, Symbol), T.untyped]).void }
             def template(template, target, variables = {})
                 template_path = File.join(@source_directory, "templates", template)
@@ -92,7 +84,6 @@ module Rbdots
                 }
             end
 
-            # Validate the dotfiles configuration
             sig { returns(T::Boolean) }
             def validate!
                 unless Dir.exist?(@source_directory)
@@ -108,7 +99,6 @@ module Rbdots
 
             private
 
-            # Validate a single link configuration
             sig { params(link_config: T::Hash[Symbol, T.untyped]).void }
             def validate_link_config(link_config)
                 name = link_config[:name]

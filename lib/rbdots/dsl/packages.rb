@@ -15,9 +15,6 @@ module Rbdots
             sig { returns(T::Hash[Symbol, T.untyped]) }
             attr_reader :packages
 
-            # Configure Homebrew packages
-            #
-            # @yield [homebrew] Homebrew configuration block
             sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
             def homebrew(&block)
                 config = PackageManagerConfiguration.new
@@ -25,9 +22,6 @@ module Rbdots
                 @packages[:homebrew] = config
             end
 
-            # Configure APT packages (for Debian/Ubuntu systems)
-            #
-            # @yield [apt] APT configuration block
             sig do
                 params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
             end
@@ -37,9 +31,6 @@ module Rbdots
                 @packages[:apt] = config
             end
 
-            # Configure DNF packages (for Fedora systems)
-            #
-            # @yield [dnf] DNF configuration block
             sig do
                 params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
             end
@@ -49,9 +40,6 @@ module Rbdots
                 @packages[:dnf] = config
             end
 
-            # Configure Pacman packages (for Arch systems)
-            #
-            # @yield [pacman] Pacman configuration block
             sig do
                 params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
             end
@@ -61,9 +49,6 @@ module Rbdots
                 @packages[:pacman] = config
             end
 
-            # Configure YAY packages (for Arch systems using the AUR)
-            #
-            # @yield [yay] YAY configuration block
             sig do
                 params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
             end
@@ -98,42 +83,26 @@ module Rbdots
                 @casks = T.let([], T::Array[String])
             end
 
-            # Install packages
-            #
-            # @param packages [Array<String>, String] Package names to install
             sig { params(packages: T.untyped).void }
             def install(*packages)
                 @packages_to_install.concat(Array(packages).flatten)
             end
 
-            # Uninstall packages
-            #
-            # @param packages [Array<String>, String] Package names to uninstall
             sig { params(packages: T.untyped).void }
             def uninstall(*packages)
                 @packages_to_uninstall.concat(Array(packages).flatten)
             end
 
-            # Add Homebrew taps (Homebrew specific)
-            #
-            # @param taps [Array<String>, String] Tap names to add
             sig { params(taps: T.untyped).void }
             def tap(*taps)
                 @taps.concat(Array(taps).flatten)
             end
 
-            # Install Homebrew casks (Homebrew specific)
-            #
-            # @param casks [Array<String>, String] Cask names to install
             sig { params(casks: T.untyped).void }
             def cask(*casks)
                 @casks.concat(Array(casks).flatten)
             end
 
-            # Validate the package configuration
-            #
-            # @return [Boolean] True if valid
-            # @raise [ValidationError] If configuration is invalid
             sig { returns(T::Boolean) }
             def validate!
                 if @packages_to_install.empty? && @packages_to_uninstall.empty? && @casks.empty?

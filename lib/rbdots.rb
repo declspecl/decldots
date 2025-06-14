@@ -13,17 +13,17 @@ module Rbdots
     class ValidationError < Error; end
 end
 
-require_relative "rbdots/adapters/base"
-require_relative "rbdots/handlers/base"
+require_relative "rbdots/package_managers/base"
+require_relative "rbdots/programs/base"
 require_relative "rbdots/engine"
 require_relative "rbdots/dsl/configuration"
 
 module Rbdots
-    # Registry for package manager adapters
-    @adapters = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::Adapters::Base)])
+    # Registry for package managers
+    @package_managers = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::PackageManagers::Base)])
 
-    # Registry for program configuration handlers
-    @handlers = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::Handlers::Base)])
+    # Registry for program configuration programs
+    @programs = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::Programs::Base)])
 
     # Dry run mode configuration
     @dry_run = T.let(false, T::Boolean)
@@ -32,11 +32,11 @@ module Rbdots
     class << self
         extend T::Sig
 
-        sig { returns(T::Hash[Symbol, T.class_of(Rbdots::Adapters::Base)]) }
-        attr_reader :adapters
+        sig { returns(T::Hash[Symbol, T.class_of(Rbdots::PackageManagers::Base)]) }
+        attr_reader :package_managers
 
-        sig { returns(T::Hash[Symbol, T.class_of(Rbdots::Handlers::Base)]) }
-        attr_reader :handlers
+        sig { returns(T::Hash[Symbol, T.class_of(Rbdots::Programs::Base)]) }
+        attr_reader :programs
 
         sig { returns(T::Boolean) }
         attr_reader :dry_run
@@ -70,28 +70,28 @@ module Rbdots
             engine.diff_configuration(config)
         end
 
-        # Register a package manager adapter
-        sig { params(name: Symbol, adapter_class: T.class_of(Rbdots::Adapters::Base)).void }
-        def register_adapter(name, adapter_class)
-            @adapters[name] = adapter_class
+        # Register a package manager implementation
+        sig { params(name: Symbol, manager_class: T.class_of(Rbdots::PackageManagers::Base)).void }
+        def register_package_manager(name, manager_class)
+            @package_managers[name] = manager_class
         end
 
-        # Register a program configuration handler
-        sig { params(name: Symbol, handler_class: T.class_of(Rbdots::Handlers::Base)).void }
-        def register_handler(name, handler_class)
-            @handlers[name] = handler_class
+        # Register a program configuration program
+        sig { params(name: Symbol, program_class: T.class_of(Rbdots::Programs::Base)).void }
+        def register_program(name, program_class)
+            @programs[name] = program_class
         end
 
-        # Get an adapter by name
-        sig { params(name: Symbol).returns(T.class_of(Rbdots::Adapters::Base)) }
-        def get_adapter(name)
-            @adapters[name] || raise(ConfigurationError, "Unknown adapter: #{name}")
+        # Get a package manager by name
+        sig { params(name: Symbol).returns(T.class_of(Rbdots::PackageManagers::Base)) }
+        def get_package_manager(name)
+            @package_managers[name] || raise(ConfigurationError, "Unknown package manager: #{name}")
         end
 
-        # Get a handler by name
-        sig { params(name: Symbol).returns(T.class_of(Rbdots::Handlers::Base)) }
-        def get_handler(name)
-            @handlers[name] || raise(ConfigurationError, "Unknown handler: #{name}")
+        # Get a program by name
+        sig { params(name: Symbol).returns(T.class_of(Rbdots::Programs::Base)) }
+        def get_program(name)
+            @programs[name] || raise(ConfigurationError, "Unknown program: #{name}")
         end
 
         # Enable dry run mode
@@ -148,13 +148,13 @@ module Rbdots
     end
 end
 
-# Load and register built-in adapters and handlers
-require_relative "rbdots/adapters/homebrew"
-require_relative "rbdots/handlers/shell"
-require_relative "rbdots/handlers/git"
+# Load and register built-in package managers and programs
+require_relative "rbdots/package_managers/homebrew"
+require_relative "rbdots/programs/shell"
+require_relative "rbdots/programs/git"
 
 # Register built-in components
-Rbdots.register_adapter(:homebrew, Rbdots::Adapters::Homebrew)
-Rbdots.register_handler(:zsh, Rbdots::Handlers::Shell)
-Rbdots.register_handler(:bash, Rbdots::Handlers::Shell)
-Rbdots.register_handler(:git, Rbdots::Handlers::Git)
+Rbdots.register_package_manager(:homebrew, Rbdots::PackageManagers::Homebrew)
+Rbdots.register_program(:zsh, Rbdots::Programs::Shell)
+Rbdots.register_program(:bash, Rbdots::Programs::Shell)
+Rbdots.register_program(:git, Rbdots::Programs::Git)

@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # typed: false
+# frozen_string_literal: true
 
 require_relative "../lib/rbdots"
 
