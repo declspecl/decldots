@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require_relative "base"
@@ -7,9 +7,12 @@ module Rbdots
     module Handlers
         # Shell configuration handler for zsh and bash
         class Shell < Base
+            extend T::Sig
+
             # Configure the shell with the given options
             #
             # @param options [Hash] Shell configuration options
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
             def configure(options)
                 validate_options(options)
 
@@ -26,9 +29,8 @@ module Rbdots
             #
             # @param options [Hash] Configuration options to validate
             # @return [Boolean] True if valid
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
             def validate_options(options)
-                raise ValidationError, "Shell options must be a hash" unless options.is_a?(Hash)
-
                 if options[:aliases] && !options[:aliases].is_a?(Hash)
                     raise ValidationError, 
                           "Shell aliases must be a hash"
@@ -41,6 +43,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Hash] Hash describing the changes
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(options)
                 shell_type = detect_shell_type(options)
                 config_file = shell_config_file(shell_type)
@@ -59,6 +62,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Symbol] :zsh or :bash
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(Symbol) }
             def detect_shell_type(options)
                 # Could be made more sophisticated based on system shell or explicit option
                 options[:shell_type]&.to_sym || :zsh
@@ -68,6 +72,7 @@ module Rbdots
             #
             # @param shell_type [Symbol] :zsh or :bash
             # @return [String] Path to the shell configuration file
+            sig { params(shell_type: Symbol).returns(String) }
             def shell_config_file(shell_type)
                 case shell_type
                 when :zsh
@@ -84,6 +89,12 @@ module Rbdots
             # @param options [Hash] Configuration options
             # @param shell_type [Symbol] :zsh or :bash
             # @return [String] Generated shell configuration
+            sig do
+                params(
+                    options: T::Hash[Symbol, T.untyped],
+                    shell_type: Symbol
+                ).returns(String)
+            end
             def generate_shell_config(options, shell_type)
                 config_parts = []
 
@@ -125,6 +136,12 @@ module Rbdots
             # @param options [Hash] Configuration options
             # @param shell_type [Symbol] Shell type
             # @return [Array<String>] Configuration lines
+            sig do
+                params(
+                    options: T::Hash[Symbol, T.untyped],
+                    shell_type: Symbol
+                ).returns(T::Array[String])
+            end
             def generate_shell_options(options, shell_type)
                 lines = []
 
@@ -173,6 +190,7 @@ module Rbdots
             #
             # @param env_vars [Hash] Environment variables
             # @return [Array<String>] Configuration lines
+            sig { params(env_vars: T.nilable(T::Hash[T.untyped, T.untyped])).returns(T::Array[String]) }
             def generate_environment_variables(env_vars)
                 return [] unless env_vars&.any?
 
@@ -188,6 +206,7 @@ module Rbdots
             #
             # @param aliases [Hash] Shell aliases
             # @return [Array<String>] Configuration lines
+            sig { params(aliases: T.nilable(T::Hash[T.untyped, T.untyped])).returns(T::Array[String]) }
             def generate_aliases(aliases)
                 return [] unless aliases&.any?
 
@@ -203,6 +222,7 @@ module Rbdots
             #
             # @param omz_config [Hash] Oh My Zsh configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(omz_config: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_oh_my_zsh_config(omz_config)
                 return [] unless omz_config[:enable]
 
@@ -240,6 +260,12 @@ module Rbdots
             # @param options [Hash] Configuration options
             # @param shell_type [Symbol] Shell type
             # @return [Array<String>] Configuration lines
+            sig do
+                params(
+                    _options: T.untyped,
+                    shell_type: Symbol
+                ).returns(T::Array[String])
+            end
             def generate_shell_features(_options, shell_type)
                 lines = []
 
@@ -264,6 +290,7 @@ module Rbdots
             # Configure Oh My Zsh if enabled
             #
             # @param omz_config [Hash] Oh My Zsh configuration
+            sig { params(omz_config: T::Hash[Symbol, T.untyped]).void }
             def configure_oh_my_zsh(omz_config)
                 return unless omz_config[:enable]
 

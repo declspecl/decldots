@@ -18,18 +18,20 @@ module Rbdots
             # Configure Homebrew packages
             #
             # @yield [homebrew] Homebrew configuration block
-            sig { params(block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void }
-            def homebrew
+            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            def homebrew(&block)
                 config = PackageManagerConfiguration.new
-                yield(config) if block_given?
+                config.instance_eval(&block) if block_given?
                 @packages[:homebrew] = config
             end
 
             # Configure APT packages (for Debian/Ubuntu systems)
             #
             # @yield [apt] APT configuration block
-            sig { params(block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void }
-            def apt
+            sig do
+                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+            end
+            def apt(&_block)
                 config = PackageManagerConfiguration.new
                 yield(config) if block_given?
                 @packages[:apt] = config
@@ -38,8 +40,10 @@ module Rbdots
             # Configure DNF packages (for Fedora systems)
             #
             # @yield [dnf] DNF configuration block
-            sig { params(block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void }
-            def dnf
+            sig do
+                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+            end
+            def dnf(&_block)
                 config = PackageManagerConfiguration.new
                 yield(config) if block_given?
                 @packages[:dnf] = config
@@ -48,8 +52,10 @@ module Rbdots
             # Configure Pacman packages (for Arch systems)
             #
             # @yield [pacman] Pacman configuration block
-            sig { params(block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void }
-            def pacman
+            sig do
+                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+            end
+            def pacman(&_block)
                 config = PackageManagerConfiguration.new
                 yield(config) if block_given?
                 @packages[:pacman] = config
@@ -58,8 +64,10 @@ module Rbdots
             # Configure YAY packages (for Arch systems using the AUR)
             #
             # @yield [yay] YAY configuration block
-            sig { params(block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void }
-            def yay
+            sig do
+                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+            end
+            def yay(&_block)
                 config = PackageManagerConfiguration.new
                 yield(config) if block_given?
                 @packages[:yay] = config

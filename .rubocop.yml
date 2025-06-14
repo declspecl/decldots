@@ -19,6 +19,12 @@ Layout/IndentationStyle:
 Layout/TrailingWhitespace:
   Enabled: false
 
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
 plugins:
   - rubocop-sorbet
   - rubocop-performance

@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require_relative "base"
@@ -7,9 +7,12 @@ module Rbdots
     module Handlers
         # Git configuration handler
         class Git < Base
+            extend T::Sig
+
             # Configure git with the given options
             #
             # @param options [Hash] Git configuration options
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
             def configure(options)
                 validate_options(options)
 
@@ -22,9 +25,8 @@ module Rbdots
             #
             # @param options [Hash] Configuration options to validate
             # @return [Boolean] True if valid
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
             def validate_options(options)
-                raise ValidationError, "Git options must be a hash" unless options.is_a?(Hash)
-
                 if options[:user_name] && !options[:user_name].is_a?(String)
                     raise ValidationError, "Git user name must be a string"
                 end
@@ -40,6 +42,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Hash] Hash describing the changes
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(options)
                 config_file = File.join(home_directory, ".gitconfig")
                 expected_content = generate_git_config(options)
@@ -57,6 +60,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [String] Generated git configuration
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(String) }
             def generate_git_config(options)
                 config_sections = []
 
@@ -92,6 +96,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_user_config(options)
                 lines = []
 
@@ -109,6 +114,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_core_config(options)
                 lines = ["[core]"]
 
@@ -135,6 +141,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_pull_config(options)
                 lines = ["[pull]"]
 
@@ -152,6 +159,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_push_config(options)
                 lines = ["[push]"]
 
@@ -170,6 +178,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_credential_config(options)
                 lines = []
 
@@ -196,6 +205,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_git_aliases(options)
                 lines = []
 
@@ -230,6 +240,7 @@ module Rbdots
             #
             # @param options [Hash] Configuration options
             # @return [Array<String>] Configuration lines
+            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_custom_config(options)
                 lines = []
 

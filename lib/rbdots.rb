@@ -3,8 +3,6 @@
 
 require "fileutils"
 require_relative "rbdots/version"
-require_relative "rbdots/engine"
-require_relative "rbdots/dsl/configuration"
 
 # Main namespace for the Rbdots declarative dotfile management framework
 module Rbdots
@@ -13,7 +11,14 @@ module Rbdots
     class Error < StandardError; end
     class ConfigurationError < Error; end
     class ValidationError < Error; end
+end
 
+require_relative "rbdots/adapters/base"
+require_relative "rbdots/handlers/base"
+require_relative "rbdots/engine"
+require_relative "rbdots/dsl/configuration"
+
+module Rbdots
     # Registry for package manager adapters
     @adapters = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::Adapters::Base)])
 

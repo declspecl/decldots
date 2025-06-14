@@ -93,6 +93,8 @@ GEM
     rubocop-sorbet (0.10.3)
       lint_roller
       rubocop (>= 1.75.2)
+    rubocop-thread_safety (0.6.0)
+      rubocop (>= 1.48.1)
     ruby-progressbar (1.13.0)
     ruby_parser (3.21.1)
       racc (~> 1.5)
@@ -148,6 +150,7 @@ DEPENDENCIES
   rubocop-rake (~> 0.7.1)
   rubocop-rspec (~> 3.6)
   rubocop-sorbet (~> 0.10.3)
+  rubocop-thread_safety (~> 0.6.0)
   ruby_parser (~> 3.21)
   sorbet (~> 0.5)
   sorbet-runtime

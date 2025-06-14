@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require "fileutils"
@@ -6,12 +6,22 @@ require "fileutils"
 module Rbdots
     # Manages dotfile linking and copying operations
     class DotfilesManager
+        extend T::Sig
+
         # Link or copy a configuration file/directory
         #
         # @param name [String] The name of the configuration
         # @param mutable [Boolean] Whether to create a mutable symlink or immutable copy
         # @param source_directory [String] The source directory containing dotfiles
         # @param target [String, nil] Custom target path (optional)
+        sig do
+            params(
+                name: String,
+                mutable: T::Boolean,
+                source_directory: T.nilable(String),
+                target: T.nilable(String)
+            ).returns(T::Hash[Symbol, T.untyped])
+        end
         def link_config(name, mutable: false, source_directory: nil, target: nil)
             source_directory ||= File.expand_path("~/.rbdots/dotfiles")
             source_path = File.join(source_directory, name)
@@ -50,6 +60,14 @@ module Rbdots
         # @param source_directory [String] The source directory containing dotfiles
         # @param target [String, nil] Custom target path (optional)
         # @return [Hash] Hash describing the changes
+        sig do
+            params(
+                name: String,
+                mutable: T::Boolean,
+                source_directory: T.nilable(String),
+                target: T.nilable(String)
+            ).returns(T::Hash[Symbol, T.untyped])
+        end
         def diff_link(name, mutable: false, source_directory: nil, target: nil)
             source_directory ||= File.expand_path("~/.rbdots/dotfiles")
             source_path = File.join(source_directory, name)
@@ -76,6 +94,7 @@ module Rbdots
         #
         # @param name [String] The name of the configuration
         # @param target [String, nil] Custom target path (optional)
+        sig { params(name: String, target: T.nilable(String)).void }
         def unlink_config(name, target: nil)
             target_path = target || File.expand_path("~/.config/#{name}")
 
@@ -100,6 +119,13 @@ module Rbdots
         # @param template_path [String] Path to the template file
         # @param target_path [String] Target file path
         # @param variables [Hash] Variables to substitute in template
+        sig do
+            params(
+                template_path: String,
+                target_path: String,
+                variables: T::Hash[T.any(String, Symbol), T.untyped]
+            ).void
+        end
         def copy_template(template_path, target_path, variables = {})
             raise ConfigurationError, "Template file not found: #{template_path}" unless File.exist?(template_path)
 
@@ -126,6 +152,7 @@ module Rbdots
         # List all current dotfile links
         #
         # @return [Array<Hash>] List of current dotfile configurations
+        sig { returns(T::Array[T::Hash[Symbol, T.untyped]]) }
         def list_current_links
             config_dir = File.expand_path("~/.config")
             return [] unless Dir.exist?(config_dir)
@@ -166,6 +193,14 @@ module Rbdots
         # @param target_path [String] Target path
         # @param original_source [String] Original source path (for display)
         # @param original_target [String] Original target path (for display)
+        sig do
+            params(
+                source_path: String,
+                target_path: String,
+                original_source: T.nilable(String),
+                original_target: T.nilable(String)
+            ).void
+        end
         def create_mutable_link(source_path, target_path, original_source: nil, original_target: nil)
             # Ensure target directory exists
             target_dir = File.dirname(target_path)
@@ -192,6 +227,14 @@ module Rbdots
         # @param target_path [String] Target path
         # @param original_source [String] Original source path (for display)
         # @param original_target [String] Original target path (for display)
+        sig do
+            params(
+                source_path: String,
+                target_path: String,
+                original_source: T.nilable(String),
+                original_target: T.nilable(String)
+            ).void
+        end
         def create_immutable_copy(source_path, target_path, original_source: nil, original_target: nil)
             # Ensure target directory exists
             target_dir = File.dirname(target_path)
@@ -223,6 +266,7 @@ module Rbdots
         # @param source_path [String] Source path
         # @param target_path [String] Target path
         # @raise [ConfigurationError] If validation fails
+        sig { params(source_path: String, target_path: String).void }
         def validate_link_operation(source_path, target_path)
             unless File.exist?(source_path) || File.directory?(source_path)
                 raise ConfigurationError, "Source path does not exist: #{source_path}"
@@ -245,6 +289,7 @@ module Rbdots
         # Backup an existing target file or directory
         #
         # @param target_path [String] Path to backup
+        sig { params(target_path: String).void }
         def backup_existing_target(target_path)
             return unless File.exist?(target_path) || File.symlink?(target_path)
 
@@ -267,6 +312,7 @@ module Rbdots
         # @param file1 [String] First file path
         # @param file2 [String] Second file path
         # @return [Boolean] True if files are identical
+        sig { params(file1: String, file2: String).returns(T::Boolean) }
         def files_identical?(file1, file2)
             return false unless File.exist?(file1) && File.exist?(file2)
             return false if File.directory?(file1) || File.directory?(file2)
@@ -278,6 +324,7 @@ module Rbdots
         #
         # @param source_path [String] Path where to create the dummy file
         # @param name [String] Name of the configuration (for content)
+        sig { params(source_path: String, name: String).void }
         def create_dummy_source_file(source_path, name)
             FileUtils.mkdir_p(File.dirname(source_path))
 

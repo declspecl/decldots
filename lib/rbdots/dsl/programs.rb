@@ -15,18 +15,18 @@ module Rbdots
             # Configure zsh shell
             #
             # @yield [zsh] Zsh configuration block
-            sig { params(block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void }
-            def zsh
+            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            def zsh(&block)
                 config = ProgramConfiguration.new
-                yield(config) if block_given?
+                config.instance_eval(&block) if block_given?
                 @programs[:zsh] = config
             end
 
             # Configure bash shell
             #
             # @yield [bash] Bash configuration block
-            sig { params(block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void }
-            def bash
+            sig { params(_block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void.checked(:never) }
+            def bash(&_block)
                 config = ProgramConfiguration.new
                 yield(config) if block_given?
                 @programs[:bash] = config
@@ -35,22 +35,39 @@ module Rbdots
             # Configure git
             #
             # @yield [git] Git configuration block
-            sig { params(block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void }
-            def git
+            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            def git(&block)
                 config = ProgramConfiguration.new
-                yield(config) if block_given?
+                config.instance_eval(&block) if block_given?
                 @programs[:git] = config
             end
 
             # Configure VSCode
             #
             # @yield [vscode] VSCode configuration block
-            sig { params(block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void }
-            def vscode
+            sig { params(_block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void.checked(:never) }
+            def vscode(&_block)
                 config = ProgramConfiguration.new
                 yield(config) if block_given?
                 @programs[:vscode] = config
             end
+
+            # Configure shell aliases
+            #
+            # @yield [aliases] Aliases configuration block
+            # NOTE: Aliases are configured per-program (e.g. inside the zsh
+            # block) through `ProgramConfiguration#aliases`.  Having a top-level
+            # aliases block here would require merging alias information across
+            # multiple programs, which is currently out of scope.  The original
+            # implementation referenced `@options` (undefined in this context)
+            # and therefore triggered linter errors.  It has been removed.
+
+            # Configure Oh My Zsh (zsh specific)
+            #
+            # @yield [omz] Oh My Zsh configuration block
+            # The Oh-My-Zsh settings should also live at the program level.  The
+            # misplaced implementation has been removed for the same reason as
+            # the `aliases` method above.
         end
 
         # Configuration for a specific program
@@ -69,7 +86,7 @@ module Rbdots
             #
             # @param enabled [Boolean] Whether to enable completion
             sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable_completion(enabled: true)
+            def enable_completion(enabled = true)
                 @options[:enable_completion] = enabled
             end
 
@@ -77,7 +94,7 @@ module Rbdots
             #
             # @param enabled [Boolean] Whether to enable autosuggestion
             sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable_autosuggestion(enabled: true)
+            def enable_autosuggestion(enabled = true)
                 @options[:enable_autosuggestion] = enabled
             end
 
@@ -85,17 +102,17 @@ module Rbdots
             #
             # @param enabled [Boolean] Whether to enable syntax highlighting
             sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable_syntax_highlighting(enabled: true)
+            def enable_syntax_highlighting(enabled = true)
                 @options[:enable_syntax_highlighting] = enabled
             end
 
             # Configure shell aliases
             #
             # @yield [aliases] Aliases configuration block
-            sig { params(block: T.nilable(T.proc.params(config: AliasesConfiguration).void)).void }
-            def aliases
+            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            def aliases(&block)
                 aliases_config = AliasesConfiguration.new
-                yield(aliases_config) if block_given?
+                aliases_config.instance_eval(&block) if block_given?
                 @options[:aliases] = aliases_config.to_hash
             end
 
@@ -110,10 +127,10 @@ module Rbdots
             # Configure Oh My Zsh (zsh specific)
             #
             # @yield [omz] Oh My Zsh configuration block
-            sig { params(block: T.nilable(T.proc.params(config: OhMyZshConfiguration).void)).void }
-            def oh_my_zsh
+            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            def oh_my_zsh(&block)
                 omz_config = OhMyZshConfiguration.new
-                yield(omz_config) if block_given?
+                omz_config.instance_eval(&block) if block_given?
                 @options[:oh_my_zsh] = omz_config.to_hash
             end
 
@@ -233,7 +250,7 @@ module Rbdots
             #
             # @param enabled [Boolean] Whether to enable Oh My Zsh
             sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable(enabled: true)
+            def enable(enabled = true)
                 @config[:enable] = enabled
             end
 

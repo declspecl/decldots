@@ -100,6 +100,13 @@ module Rbdots
             # Check if a package is installed
             sig { override.params(package: String).returns(T::Boolean) }
             def installed?(package)
+                # In dry-run mode we have no reliable way of knowing what is
+                # installed on the host. Presume the package is _not_ installed
+                # so that the diff accurately reflects the intention of the
+                # configuration. If the user is running in live mode the real
+                # `brew list` check below will be executed.
+                return false if Rbdots.dry_run?
+
                 execute_command("brew list #{package}", capture_output: true)
                 true
             rescue CommandError
@@ -109,6 +116,8 @@ module Rbdots
             # Check if a cask is installed
             sig { params(cask: String).returns(T::Boolean) }
             def cask_installed?(cask)
+                return false if Rbdots.dry_run?
+
                 execute_command("brew list --cask #{cask}", capture_output: true)
                 true
             rescue CommandError
@@ -118,6 +127,8 @@ module Rbdots
             # Check if a tap exists
             sig { params(tap: String).returns(T::Boolean) }
             def tap_exists?(tap)
+                return false if Rbdots.dry_run?
+
                 taps = T.cast(execute_command("brew tap", capture_output: true), String)
                 taps.include?(tap)
             rescue CommandError

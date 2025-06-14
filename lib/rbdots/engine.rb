@@ -24,9 +24,8 @@ module Rbdots
             checkpoint = @state_manager.create_checkpoint
 
             begin
-                apply_packages(config.packages.to_hash) if config.packages&.any?
-                apply_programs(config.programs.to_hash) if config.programs&.any?
-                apply_dotfiles(config.dotfiles) if config.dotfiles&.any?
+                apply_packages(config.packages_config) if config.packages_config.any?
+                apply_programs(config.programs_config) if config.programs_config.any?
                 apply_dotfiles(config.dotfiles) if config.dotfiles
 
                 @state_manager.save_state
@@ -45,9 +44,9 @@ module Rbdots
 
             changes = T.let({}, T::Hash[String, T.untyped])
 
-            changes["packages"] = diff_packages(config.packages.to_hash) if config.packages&.any?
-            changes["programs"] = diff_programs(config.programs.to_hash) if config.programs&.any?
-            changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles&.any?
+            changes["packages"] = diff_packages(config.packages_config) if config.packages_config.any?
+            changes["programs"] = diff_programs(config.programs_config) if config.programs_config.any?
+            changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles
 
             changes
         end
@@ -129,6 +128,8 @@ module Rbdots
         # Apply dotfiles configurations
         sig { params(dotfiles: T.nilable(Rbdots::DSL::Dotfiles)).void }
         def apply_dotfiles(dotfiles)
+            return unless dotfiles
+
             dotfiles.links.each do |link_config|
                 puts "Linking dotfile: #{link_config[:name]} (mutable: #{link_config[:mutable]})"
                 @dotfiles_manager.link_config(
@@ -179,6 +180,8 @@ module Rbdots
         sig { params(dotfiles: T.nilable(Rbdots::DSL::Dotfiles)).returns(T::Hash[Symbol, T.untyped]) }
         def diff_dotfiles(dotfiles)
             changes = T.let({ links: [] }, T::Hash[Symbol, T.untyped])
+
+            return changes unless dotfiles
 
             dotfiles.links.each do |link_config|
                 diff = @dotfiles_manager.diff_link(

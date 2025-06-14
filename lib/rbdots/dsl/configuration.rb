@@ -11,53 +11,51 @@ module Rbdots
         class Configuration
             extend T::Sig
 
-            sig { returns(Rbdots::DSL::Packages) }
-            attr_reader :packages
+            sig { returns(T::Hash[Symbol, T.untyped]) }
+            attr_reader :packages_config
 
-            sig { returns(Rbdots::DSL::Programs) }
-            attr_reader :programs
+            sig { returns(T::Hash[Symbol, T.untyped]) }
+            attr_reader :programs_config
 
-            sig { returns(T.nilable(Rbdots::DSL::Dotfiles)) }
-            attr_reader :dotfiles
-
+            # Accessor replaced by the `dotfiles` method defined below.
             sig { returns(Rbdots::DSL::UserConfiguration) }
             attr_reader :user_config
 
             sig { void }
             def initialize
-                @packages = T.let(Packages.new({}), Rbdots::DSL::Packages)
-                @programs = T.let(Programs.new({}), Rbdots::DSL::Programs)
+                @packages_config = T.let({}, T::Hash[Symbol, T.untyped])
+                @programs_config = T.let({}, T::Hash[Symbol, T.untyped])
                 @dotfiles = T.let(nil, T.nilable(Rbdots::DSL::Dotfiles))
                 @user_config = T.let(UserConfiguration.new, Rbdots::DSL::UserConfiguration)
+                @packages_dsl = T.let(nil, T.nilable(Rbdots::DSL::Packages))
+                @programs_dsl = T.let(nil, T.nilable(Rbdots::DSL::Programs))
             end
 
             # Configure user information
-            sig { params(block: T.nilable(T.proc.params(user: Rbdots::DSL::UserConfiguration).void)).void }
+            sig { params(block: T.nilable(T.proc.void)).void }
             def user(&block)
-                @user_config_obj = T.let(UserConfiguration.new, Rbdots::DSL::UserConfiguration)
-                block&.call(@user_config_obj)
-                @user_config = @user_config_obj.to_hash
+                user_config_obj = UserConfiguration.new
+                user_config_obj.instance_eval(&block) if block
+                @user_config = user_config_obj
             end
 
             # Configure packages for various package managers
-            sig { returns(T.nilable(Rbdots::DSL::Packages)) }
+            sig { returns(Rbdots::DSL::Packages) }
             def packages
-                @packages_dsl = T.let(@packages_dsl ||= Rbdots::DSL::Packages.new(@packages), Rbdots::DSL::Packages)
+                @packages_dsl ||= Rbdots::DSL::Packages.new(@packages_config)
             end
 
             # Configure programs
-            sig { returns(T.nilable(Rbdots::DSL::Programs)) }
+            sig { returns(Rbdots::DSL::Programs) }
             def programs
-                @programs_dsl = T.let(@programs_dsl ||= Rbdots::DSL::Programs.new(@programs), Rbdots::DSL::Programs)
+                @programs_dsl ||= Rbdots::DSL::Programs.new(@programs_config)
             end
 
             # Configure dotfiles linking
-            sig do
-                params(block: T.nilable(T.proc.params(dotfiles: Rbdots::DSL::Dotfiles).void)).returns(T.nilable(Rbdots::DSL::Dotfiles))
-            end
+            sig { params(block: T.nilable(T.proc.void)).returns(Rbdots::DSL::Dotfiles) }
             def dotfiles(&block)
                 @dotfiles = Rbdots::DSL::Dotfiles.new
-                block&.call(@dotfiles)
+                @dotfiles.instance_eval(&block) if block
                 @dotfiles
             end
 
@@ -78,7 +76,7 @@ module Rbdots
             # Validate package configurations
             sig { void }
             def validate_packages!
-                @packages.each do |adapter_name, package_config|
+                @packages_config.each do |adapter_name, package_config|
                     unless Rbdots.adapters.key?(adapter_name)
                         raise ValidationError, 
                               "Unknown package manager: #{adapter_name}"
@@ -91,7 +89,7 @@ module Rbdots
             # Validate program configurations
             sig { void }
             def validate_programs!
-                @programs.each do |program_name, program_config|
+                @programs_config.each do |program_name, program_config|
                     unless Rbdots.handlers.key?(program_name)
                         raise ValidationError, 
                               "Unknown program handler: #{program_name}"
