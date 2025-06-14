@@ -6,3 +6,15 @@ Style/StringLiterals:
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+
+Layout/LineLength:
+  Max: 120
+
+Layout/IndentationWidth:
+  Width: 4
+
+Layout/IndentationStyle:
+  EnforcedStyle: spaces
+
+Layout/TrailingWhitespace:
+  Enabled: false

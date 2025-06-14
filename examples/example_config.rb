@@ -10,92 +10,92 @@ Rbdots.enable_dry_run
 
 # Create the configuration
 config = Rbdots.configure do |config|
-  # User information
-  config.user do
-    name "dec"
-    email "gavind2559@gmail.com"
-    home_directory "/Users/dec"
-  end
-
-  # Package management with Homebrew
-  config.packages.homebrew do
-    # Add taps first
-    tap "homebrew/cask"
-
-    # Install command-line tools
-    install "git", "curl", "wget", "jq"
-    install "zsh-autosuggestions", "zsh-syntax-highlighting"
-
-    # Install GUI applications via casks
-    cask "visual-studio-code", "firefox"
-  end
-
-  # Configure zsh shell
-  config.programs.zsh do
-    enable_completion true
-    enable_autosuggestion true
-    enable_syntax_highlighting true
-
-    # Set up aliases (replicating your Nix config)
-    aliases do
-      ls "eza"
-      cls "clear"
-      hmbs "rbdots apply" # equivalent to your nix hmbs command
+    # User information
+    config.user do
+        name "dec"
+        email "gavind2559@gmail.com"
+        home_directory "/Users/dec"
     end
 
-    # Oh My Zsh configuration
-    oh_my_zsh do
-      enable true
-      theme "robbyrussell"
-      plugins %w[git python man]
+    # Package management with Homebrew
+    config.packages.homebrew do
+        # Add taps first
+        tap "homebrew/cask"
+
+        # Install command-line tools
+        install "git", "curl", "wget", "jq"
+        install "zsh-autosuggestions", "zsh-syntax-highlighting"
+
+        # Install GUI applications via casks
+        cask "visual-studio-code", "firefox"
     end
 
-    # Custom shell initialization
-    shell_init <<~SHELL
-      setopt ignore_eof
+    # Configure zsh shell
+    config.programs.zsh do
+        enable_completion true
+        enable_autosuggestion true
+        enable_syntax_highlighting true
 
-      function fzkill() {
-          ps aux | fzf --height 40% --layout=reverse --prompt="Select process to kill: " | awk '{print $2}' | xargs -r sudo kill
-      }
+        # Set up aliases (replicating your Nix config)
+        aliases do
+            ls "eza"
+            cls "clear"
+            hmbs "rbdots apply" # equivalent to your nix hmbs command
+        end
 
-      PROMPT=' %{$fg[magenta]%}%0*%{$reset_color%} %{$fg[cyan]%}%0~%{$reset_color%} $(git_prompt_info)$ '
-    SHELL
+        # Oh My Zsh configuration
+        oh_my_zsh do
+            enable true
+            theme "robbyrussell"
+            plugins %w[git python man]
+        end
 
-    # Environment variables
-    environment_variables({
-                            "RUST_BACKTRACE" => "1"
-                          })
-  end
+        # Custom shell initialization
+        shell_init <<~SHELL
+                setopt ignore_eof
+            #{"    "}
+                function fzkill() {
+                ps aux | fzf --height 40% --layout=reverse --prompt="Select process to kill: " | awk '{print $2}' | xargs -r sudo kill
+            }
 
-  # Configure Git
-  config.programs.git do
-    user_name "dec"
-    user_email "gavind2559@gmail.com"
-    default_branch "main"
-    pull_rebase true
+            PROMPT=' %{$fg[magenta]%}%0*%{$reset_color%} %{$fg[cyan]%}%0~%{$reset_color%} $(git_prompt_info)$ '
+        SHELL
 
-    # Credential configuration (mimicking your Nix setup)
-    set_option :credential_helper, "manager"
-    set_option :credential_store, "cache"
-    set_option :github_username, "declspecl"
-  end
+        # Environment variables
+        environment_variables({
+                                  "RUST_BACKTRACE" => "1"
+                              })
+    end
 
-  # Configure dotfiles linking (mimicking your manualDots)
-  config.dotfiles do
-    source_directory "~/.rbdots/dotfiles"
+    # Configure Git
+    config.programs.git do
+        user_name "dec"
+        user_email "gavind2559@gmail.com"
+        default_branch "main"
+        pull_rebase true
 
-    # Mutable dotfiles (can be edited directly)
-    link "emacs", mutable: true
-    link "nvim", mutable: true
+        # Credential configuration (mimicking your Nix setup)
+        set_option :credential_helper, "manager"
+        set_option :credential_store, "cache"
+        set_option :github_username, "declspecl"
+    end
 
-    # Immutable dotfiles (copied, not linked)
-    link "hypr", mutable: false
-    link "kitty", mutable: false
-    link "mako", mutable: false
-    link "wofi", mutable: false
-    link "waybar", mutable: false
-    link "wlogout", mutable: false
-  end
+    # Configure dotfiles linking (mimicking your manualDots)
+    config.dotfiles do
+        source_directory "~/.rbdots/dotfiles"
+
+        # Mutable dotfiles (can be edited directly)
+        link "emacs", mutable: true
+        link "nvim", mutable: true
+
+        # Immutable dotfiles (copied, not linked)
+        link "hypr", mutable: false
+        link "kitty", mutable: false
+        link "mako", mutable: false
+        link "wofi", mutable: false
+        link "waybar", mutable: false
+        link "wlogout", mutable: false
+    end
 end
 
 puts "=== Rbdots Example Configuration ==="
