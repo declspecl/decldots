@@ -18,3 +18,10 @@ Layout/IndentationStyle:
 
 Layout/TrailingWhitespace:
   Enabled: false
+
+plugins:
+  - rubocop-sorbet
+  - rubocop-performance
+  - rubocop-rake
+  - rubocop-rspec
+  - rubocop-minitest

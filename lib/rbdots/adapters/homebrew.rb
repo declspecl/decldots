@@ -1,3 +1,4 @@
+# typed: strict
 # frozen_string_literal: true
 
 require_relative "base"
@@ -6,13 +7,15 @@ module Rbdots
     module Adapters
         # Homebrew package manager adapter
         class Homebrew < Base
+            extend T::Sig
+
+            sig { void }
             def initialize
                 ensure_package_manager_available!
             end
 
             # Install packages and casks
-            #
-            # @param packages [Array<String>] Package names to install
+            sig { override.params(packages: T::Array[String]).void }
             def install(packages)
                 return if packages.empty?
 
@@ -28,8 +31,7 @@ module Rbdots
             end
 
             # Install Homebrew casks (GUI applications)
-            #
-            # @param casks [Array<String>] Cask names to install
+            sig { params(casks: T::Array[String]).void }
             def install_casks(casks)
                 return if casks.empty?
 
@@ -45,8 +47,7 @@ module Rbdots
             end
 
             # Add Homebrew taps (third-party repositories)
-            #
-            # @param taps [Array<String>] Tap names to add
+            sig { params(taps: T::Array[String]).void }
             def add_taps(taps)
                 return if taps.empty?
 
@@ -62,8 +63,7 @@ module Rbdots
             end
 
             # Uninstall packages
-            #
-            # @param packages [Array<String>] Package names to uninstall
+            sig { override.params(packages: T::Array[String]).void }
             def uninstall(packages)
                 return if packages.empty?
 
@@ -79,8 +79,7 @@ module Rbdots
             end
 
             # Update packages
-            #
-            # @param packages [Array<String>, nil] Specific packages to update, or nil for all
+            sig { override.params(packages: T.nilable(T::Array[String])).void }
             def update(packages = nil)
                 if packages.nil?
                     puts "Updating Homebrew..."
@@ -99,9 +98,7 @@ module Rbdots
             end
 
             # Check if a package is installed
-            #
-            # @param package [String] Package name to check
-            # @return [Boolean] True if package is installed
+            sig { override.params(package: String).returns(T::Boolean) }
             def installed?(package)
                 execute_command("brew list #{package}", capture_output: true)
                 true
@@ -110,9 +107,7 @@ module Rbdots
             end
 
             # Check if a cask is installed
-            #
-            # @param cask [String] Cask name to check
-            # @return [Boolean] True if cask is installed
+            sig { params(cask: String).returns(T::Boolean) }
             def cask_installed?(cask)
                 execute_command("brew list --cask #{cask}", capture_output: true)
                 true
@@ -121,43 +116,69 @@ module Rbdots
             end
 
             # Check if a tap exists
-            #
-            # @param tap [String] Tap name to check
-            # @return [Boolean] True if tap is added
+            sig { params(tap: String).returns(T::Boolean) }
             def tap_exists?(tap)
-                taps = execute_command("brew tap", capture_output: true)
+                taps = T.cast(execute_command("brew tap", capture_output: true), String)
                 taps.include?(tap)
             rescue CommandError
                 false
             end
 
             # Get list of installed packages
-            #
-            # @return [Array<String>] List of installed package names
+            sig { override.returns(T::Array[String]) }
             def list_installed
-                result = execute_command("brew list --formula", capture_output: true)
+                result = T.cast(execute_command("brew list --formula", capture_output: true), String)
                 result.strip.split("\n")
             rescue CommandError
                 []
             end
 
             # Get list of installed casks
-            #
-            # @return [Array<String>] List of installed cask names
+            sig { returns(T::Array[String]) }
             def list_installed_casks
-                result = execute_command("brew list --cask", capture_output: true)
+                result = T.cast(execute_command("brew list --cask", capture_output: true), String)
                 result.strip.split("\n")
             rescue CommandError
                 []
             end
 
-            # Clean up old versions and cached files
+            # Get list of available updates
+            sig { returns(T::Array[String]) }
+            def list_outdated
+                result = T.cast(execute_command("brew outdated", capture_output: true), String)
+                result.strip.split("\n")
+            rescue CommandError
+                []
+            end
+
+            # Get information about a package
+            sig { params(package: String).returns(T::Hash[String, T.untyped]) }
+            def package_info(package)
+                result = T.cast(execute_command("brew info #{package} --json", capture_output: true), String)
+                require "json"
+                JSON.parse(result).first
+            rescue CommandError, JSON::ParserError
+                {}
+            end
+
+            # Search for packages
+            sig { params(query: String).returns(T::Array[String]) }
+            def search(query)
+                result = T.cast(execute_command("brew search #{query}", capture_output: true), String)
+                result.strip.split("\n")
+            rescue CommandError
+                []
+            end
+
+            # Clean up old versions and cache
+            sig { void }
             def cleanup
                 puts "Cleaning up Homebrew..."
                 execute_command("brew cleanup")
             end
 
             # Show Homebrew system information
+            sig { void }
             def doctor
                 puts "Running Homebrew doctor..."
                 execute_command("brew doctor")
@@ -166,6 +187,7 @@ module Rbdots
             protected
 
             # Ensure Homebrew is available
+            sig { void }
             def ensure_package_manager_available!
                 return if command_exists?("brew")
 

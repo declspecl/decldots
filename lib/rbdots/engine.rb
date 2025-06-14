@@ -1,20 +1,22 @@
+# typed: strict
 # frozen_string_literal: true
 
 require_relative "state_manager"
 require_relative "dotfiles_manager"
 
 module Rbdots
-    # Core engine responsible for orchestrating configuration application
+    # Core engine for applying configurations
     class Engine
+        extend T::Sig
+
+        sig { void }
         def initialize
-            @state_manager = StateManager.new
-            @dotfiles_manager = DotfilesManager.new
+            @state_manager = T.let(StateManager.new, StateManager)
+            @dotfiles_manager = T.let(DotfilesManager.new, DotfilesManager)
         end
 
         # Apply a configuration to the system
-        #
-        # @param config [Rbdots::DSL::Configuration] The configuration to apply
-        # @return [Boolean] True if successful
+        sig { params(config: Rbdots::DSL::Configuration).returns(T::Boolean) }
         def apply_configuration(config)
             validate_configuration(config)
 
@@ -22,8 +24,9 @@ module Rbdots
             checkpoint = @state_manager.create_checkpoint
 
             begin
-                apply_packages(config.packages) if config.packages
-                apply_programs(config.programs) if config.programs
+                apply_packages(config.packages.to_hash) if config.packages&.any?
+                apply_programs(config.programs.to_hash) if config.programs&.any?
+                apply_dotfiles(config.dotfiles) if config.dotfiles&.any?
                 apply_dotfiles(config.dotfiles) if config.dotfiles
 
                 @state_manager.save_state
@@ -36,25 +39,21 @@ module Rbdots
         end
 
         # Show what changes would be applied without actually applying them
-        #
-        # @param config [Rbdots::DSL::Configuration] The configuration to diff
-        # @return [Hash] Hash of changes that would be made
+        sig { params(config: Rbdots::DSL::Configuration).returns(T::Hash[String, T.untyped]) }
         def diff_configuration(config)
             validate_configuration(config)
 
-            changes = {}
+            changes = T.let({}, T::Hash[String, T.untyped])
 
-            changes[:packages] = diff_packages(config.packages) if config.packages
-            changes[:programs] = diff_programs(config.programs) if config.programs
-            changes[:dotfiles] = diff_dotfiles(config.dotfiles) if config.dotfiles
+            changes["packages"] = diff_packages(config.packages.to_hash) if config.packages&.any?
+            changes["programs"] = diff_programs(config.programs.to_hash) if config.programs&.any?
+            changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles&.any?
 
             changes
         end
 
         # Rollback to a previous checkpoint
-        #
-        # @param checkpoint [String] The checkpoint identifier
-        # @return [Boolean] True if successful
+        sig { params(checkpoint: String).returns(T::Boolean) }
         def rollback_to_checkpoint(checkpoint)
             @state_manager.rollback_to(checkpoint)
         rescue StandardError => e
@@ -65,9 +64,7 @@ module Rbdots
         private
 
         # Validate the configuration before applying
-        #
-        # @param config [Rbdots::DSL::Configuration] The configuration to validate
-        # @raise [ValidationError] If configuration is invalid
+        sig { params(config: Rbdots::DSL::Configuration).returns(T::Boolean) }
         def validate_configuration(config)
             raise ValidationError, "Configuration cannot be nil" if config.nil?
 
@@ -76,8 +73,7 @@ module Rbdots
         end
 
         # Apply package configurations
-        #
-        # @param packages [Hash] Package configurations by adapter name
+        sig { params(packages: T::Hash[Symbol, T.untyped]).void }
         def apply_packages(packages)
             packages.each do |adapter_name, package_config|
                 if Rbdots.dry_run?
@@ -97,10 +93,11 @@ module Rbdots
                 adapter_class = Rbdots.get_adapter(adapter_name)
                 adapter = adapter_class.new
 
-                # Handle Homebrew-specific features
-                if adapter_name == :homebrew && adapter.respond_to?(:add_taps)
-                    adapter.add_taps(package_config.taps) if package_config.taps.any?
-                    adapter.install_casks(package_config.casks) if package_config.casks.any?
+                # Handle Homebrew-specific features using type casting
+                if adapter_name == :homebrew
+                    homebrew_adapter = T.cast(adapter, Rbdots::Adapters::Homebrew)
+                    homebrew_adapter.add_taps(package_config.taps) if package_config.taps.any?
+                    homebrew_adapter.install_casks(package_config.casks) if package_config.casks.any?
                 end
 
                 # Install regular packages
@@ -118,8 +115,7 @@ module Rbdots
         end
 
         # Apply program configurations
-        #
-        # @param programs [Hash] Program configurations by handler name
+        sig { params(programs: T::Hash[Symbol, T.untyped]).void }
         def apply_programs(programs)
             programs.each do |program_name, program_config|
                 handler_class = Rbdots.get_handler(program_name)
@@ -131,8 +127,7 @@ module Rbdots
         end
 
         # Apply dotfiles configurations
-        #
-        # @param dotfiles [Rbdots::DSL::Dotfiles] Dotfiles configuration
+        sig { params(dotfiles: T.nilable(Rbdots::DSL::Dotfiles)).void }
         def apply_dotfiles(dotfiles)
             dotfiles.links.each do |link_config|
                 puts "Linking dotfile: #{link_config[:name]} (mutable: #{link_config[:mutable]})"
@@ -145,11 +140,9 @@ module Rbdots
         end
 
         # Show package differences
-        #
-        # @param packages [Hash] Package configurations
-        # @return [Hash] Package differences
+        sig { params(packages: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
         def diff_packages(packages)
-            changes = {}
+            changes = T.let({}, T::Hash[Symbol, T.untyped])
 
             packages.each do |adapter_name, package_config|
                 adapter_class = Rbdots.get_adapter(adapter_name)
@@ -168,11 +161,9 @@ module Rbdots
         end
 
         # Show program configuration differences
-        #
-        # @param programs [Hash] Program configurations
-        # @return [Hash] Program differences
+        sig { params(programs: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
         def diff_programs(programs)
-            changes = {}
+            changes = T.let({}, T::Hash[Symbol, T.untyped])
 
             programs.each do |program_name, program_config|
                 handler_class = Rbdots.get_handler(program_name)
@@ -185,11 +176,9 @@ module Rbdots
         end
 
         # Show dotfiles differences
-        #
-        # @param dotfiles [Rbdots::DSL::Dotfiles] Dotfiles configuration
-        # @return [Hash] Dotfiles differences
+        sig { params(dotfiles: T.nilable(Rbdots::DSL::Dotfiles)).returns(T::Hash[Symbol, T.untyped]) }
         def diff_dotfiles(dotfiles)
-            changes = { links: [] }
+            changes = T.let({ links: [] }, T::Hash[Symbol, T.untyped])
 
             dotfiles.links.each do |link_config|
                 diff = @dotfiles_manager.diff_link(

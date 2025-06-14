@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# typed: false
 
 # Example Rbdots configuration demonstrating MVP functionality
 # Run this with: ruby examples/example_config.rb

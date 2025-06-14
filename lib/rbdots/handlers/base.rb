@@ -1,50 +1,43 @@
+# typed: strict
 # frozen_string_literal: true
 
 module Rbdots
     module Handlers
         # Base class for all program configuration handlers
         class Base
+            extend T::Sig
+            extend T::Helpers
+            abstract!
+
             # Configure the program with the given options
-            #
-            # @param options [Hash] Configuration options specific to the program
-            # @raise [NotImplementedError] Must be implemented by subclasses
-            def configure(options)
-                raise NotImplementedError, "#{self.class} must implement #configure"
-            end
+            sig { abstract.params(options: T::Hash[Symbol, T.untyped]).void }
+            def configure(options); end
 
             # Validate configuration options
-            #
-            # @param options [Hash] Configuration options to validate
-            # @return [Boolean] True if valid
-            # @raise [ValidationError] If options are invalid
+            sig { params(_options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
             def validate_options(_options)
                 # Default implementation - can be overridden by subclasses
                 true
             end
 
             # Show what changes would be made without applying them
-            #
-            # @param options [Hash] Configuration options
-            # @return [Hash] Hash describing the changes that would be made
+            sig { params(_options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(_options)
                 # Default implementation - should be overridden by subclasses
-                { action: :configure, details: "Would configure #{self.class.name.split("::").last.downcase}" }
+                { action: :configure, 
+                  details: "Would configure #{T.must(T.must(self.class.name).split("::").last).downcase}" }
             end
 
             protected
 
             # Get the user's home directory
-            #
-            # @return [String] Path to the user's home directory
+            sig { returns(String) }
             def home_directory
                 File.expand_path("~")
             end
 
             # Write content to a file, creating directories as needed
-            #
-            # @param file_path [String] Path to the file to write
-            # @param content [String] Content to write to the file
-            # @param backup [Boolean] Whether to backup existing file
+            sig { params(file_path: String, content: String, backup: T::Boolean).void }
             def write_file(file_path, content, backup: true)
                 original_path = File.expand_path(file_path)
 
@@ -67,8 +60,7 @@ module Rbdots
             end
 
             # Create a backup of an existing file
-            #
-            # @param file_path [String] Path to the file to backup
+            sig { params(file_path: String).void }
             def backup_file(file_path)
                 timestamp = Time.now.strftime("%Y%m%d_%H%M%S")
                 backup_path = "#{file_path}.backup_#{timestamp}"
@@ -77,12 +69,12 @@ module Rbdots
             end
 
             # Read a template file and substitute variables
-            #
-            # @param template_path [String] Path to the template file
-            # @param variables [Hash] Variables to substitute in the template
-            # @return [String] The processed template content
+            sig { params(template_path: String, variables: T::Hash[T.any(String, Symbol), T.untyped]).returns(String) }
             def process_template(template_path, variables = {})
-                raise ConfigurationError, "Template file not found: #{template_path}" unless File.exist?(template_path)
+                unless File.exist?(template_path)
+                    raise Rbdots::ConfigurationError, 
+                          "Template file not found: #{template_path}"
+                end
 
                 template_content = File.read(template_path)
 
@@ -94,27 +86,22 @@ module Rbdots
             end
 
             # Check if a file exists and has the expected content
-            #
-            # @param file_path [String] Path to the file to check
-            # @param expected_content [String] Expected file content
-            # @return [Boolean] True if file exists and has expected content
+            sig { params(file_path: String, expected_content: String).returns(T::Boolean) }
             def file_matches_content?(file_path, expected_content)
-                actual_path = Rbdots.dry_run_path(File.expand_path(file_path))
-                return false unless File.exist?(actual_path)
+                return false unless File.exist?(file_path)
 
-                File.read(actual_path) == expected_content
+                actual_content = File.read(file_path)
+                actual_content.strip == expected_content.strip
             end
 
-            # Get the default configuration directory for the current user
-            #
-            # @return [String] Path to the user's config directory
+            # Get the configuration directory (typically ~/.config)
+            sig { returns(String) }
             def config_directory
                 File.join(home_directory, ".config")
             end
 
             # Ensure a directory exists, creating it if necessary
-            #
-            # @param directory_path [String] Path to the directory
+            sig { params(directory_path: String).void }
             def ensure_directory_exists(directory_path)
                 FileUtils.mkdir_p(directory_path) unless Dir.exist?(directory_path)
             end

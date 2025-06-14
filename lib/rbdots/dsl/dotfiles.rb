@@ -1,28 +1,36 @@
+# typed: strict
 # frozen_string_literal: true
 
 module Rbdots
     module DSL
         # Dotfiles configuration DSL interface
         class Dotfiles
-            attr_reader :links, :source_directory
+            extend T::Sig
 
+            sig { returns(T::Array[T::Hash[Symbol, T.untyped]]) }
+            attr_reader :links
+
+            sig { void }
             def initialize
-                @links = []
-                @source_directory = File.expand_path("~/.rbdots/dotfiles")
+                @links = T.let([], T::Array[T::Hash[Symbol, T.untyped]])
+                @source_directory = T.let(File.expand_path("~/.rbdots/dotfiles"), String)
             end
 
             # Set the source directory for dotfiles
-            #
-            # @param directory [String] The directory containing dotfile sources
-            def source_directory(directory)
+            sig { params(directory: String).void }
+            def set_source_directory(directory)
                 @source_directory = File.expand_path(directory)
             end
 
+            # Allow source_directory to be called as both getter and setter
+            sig { params(directory: T.nilable(String)).returns(String) }
+            def source_directory(directory = nil)
+                set_source_directory(directory) if directory
+                @source_directory
+            end
+
             # Link a dotfile configuration
-            #
-            # @param name [String] The name of the configuration (matches directory/file name)
-            # @param mutable [Boolean] Whether the link should be mutable (symlink) or immutable (copy)
-            # @param target [String, nil] Custom target path (defaults to ~/.config/{name})
+            sig { params(name: String, mutable: T::Boolean, target: T.nilable(String)).void }
             def link(name, mutable: false, target: nil)
                 target_path = target || File.expand_path("~/.config/#{name}")
 
@@ -35,34 +43,25 @@ module Rbdots
             end
 
             # Link multiple dotfiles with the same mutability setting
-            #
-            # @param names [Array<String>] Array of configuration names
-            # @param mutable [Boolean] Whether the links should be mutable
+            sig { params(names: T::Array[String], mutable: T::Boolean).void }
             def link_multiple(names, mutable: false)
                 names.each { |name| link(name, mutable: mutable) }
             end
 
             # Link a mutable dotfile (convenience method)
-            #
-            # @param name [String] The name of the configuration
-            # @param target [String, nil] Custom target path
+            sig { params(name: String, target: T.nilable(String)).void }
             def link_mutable(name, target: nil)
                 link(name, mutable: true, target: target)
             end
 
             # Link an immutable dotfile (convenience method)
-            #
-            # @param name [String] The name of the configuration
-            # @param target [String, nil] Custom target path
+            sig { params(name: String, target: T.nilable(String)).void }
             def link_immutable(name, target: nil)
                 link(name, mutable: false, target: target)
             end
 
             # Copy a file instead of linking
-            #
-            # @param source [String] Source file path (relative to source_directory)
-            # @param target [String] Target file path
-            # @param backup [Boolean] Whether to backup existing files
+            sig { params(source: String, target: String, backup: T::Boolean).void }
             def copy(source, target, backup: true)
                 source_path = File.join(@source_directory, source)
                 target_path = File.expand_path(target)
@@ -78,10 +77,7 @@ module Rbdots
             end
 
             # Create a template-based configuration
-            #
-            # @param template [String] Template file name
-            # @param target [String] Target file path
-            # @param variables [Hash] Variables to substitute in template
+            sig { params(template: String, target: String, variables: T::Hash[T.any(String, Symbol), T.untyped]).void }
             def template(template, target, variables = {})
                 template_path = File.join(@source_directory, "templates", template)
                 target_path = File.expand_path(target)
@@ -97,12 +93,10 @@ module Rbdots
             end
 
             # Validate the dotfiles configuration
-            #
-            # @return [Boolean] True if valid
-            # @raise [ValidationError] If configuration is invalid
+            sig { returns(T::Boolean) }
             def validate!
                 unless Dir.exist?(@source_directory)
-                    raise ValidationError, "Source directory does not exist: #{@source_directory}"
+                    raise Rbdots::ValidationError, "Source directory does not exist: #{@source_directory}"
                 end
 
                 @links.each do |link_config|
@@ -115,21 +109,19 @@ module Rbdots
             private
 
             # Validate a single link configuration
-            #
-            # @param link_config [Hash] The link configuration to validate
-            # @raise [ValidationError] If link configuration is invalid
+            sig { params(link_config: T::Hash[Symbol, T.untyped]).void }
             def validate_link_config(link_config)
                 name = link_config[:name]
                 source = link_config[:source]
                 target = link_config[:target]
 
-                raise ValidationError, "Link name cannot be empty" if name.nil? || name.strip.empty?
+                raise Rbdots::ValidationError, "Link name cannot be empty" if name.nil? || name.to_s.strip.empty?
 
-                raise ValidationError, "Link must have both source and target paths" unless source && target
+                raise Rbdots::ValidationError, "Link must have both source and target paths" unless source && target
 
                 # Check if source exists (skip validation for templates as they might not exist yet)
                 if link_config[:action] != :template && !File.exist?(source) && !File.directory?(source)
-                    raise ValidationError, "Source path does not exist: #{source}"
+                    raise Rbdots::ValidationError, "Source path does not exist: #{source}"
                 end
 
                 # Validate target directory exists or can be created
@@ -139,7 +131,7 @@ module Rbdots
                 begin
                     FileUtils.mkdir_p(target_dir)
                 rescue Errno::EACCES, Errno::EPERM => e
-                    raise ValidationError, "Cannot create target directory #{target_dir}: #{e.message}"
+                    raise Rbdots::ValidationError, "Cannot create target directory #{target_dir}: #{e.message}"
                 end
             end
         end
