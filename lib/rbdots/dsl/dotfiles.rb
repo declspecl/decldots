@@ -109,12 +109,11 @@ module Rbdots
 
                 raise Rbdots::ValidationError, "Link must have both source and target paths" unless source && target
 
-                # Check if source exists (skip validation for templates as they might not exist yet)
+                # Skip validation for templates as they might not exist yet
                 if link_config[:action] != :template && !File.exist?(source) && !File.directory?(source)
                     raise Rbdots::ValidationError, "Source path does not exist: #{source}"
                 end
 
-                # Validate target directory exists or can be created
                 target_dir = File.dirname(target)
                 return if Dir.exist?(target_dir)
 

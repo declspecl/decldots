@@ -26,7 +26,7 @@ module Rbdots
                 @programs_config = T.let({}, T::Hash[Symbol, T.untyped])
                 @dotfiles = T.let(nil, T.nilable(Rbdots::DSL::Dotfiles))
                 @user_config = T.let(UserConfiguration.new, Rbdots::DSL::UserConfiguration)
-                @packages = T.let(nil, T.nilable(Rbdots::DSL::Packages))
+                @packages = T.let(nil, T.nilable(Rbdots::DSL::PackageManagement))
                 @programs = T.let(nil, T.nilable(Rbdots::DSL::Programs))
             end
 
@@ -37,9 +37,9 @@ module Rbdots
                 @user_config = user_config_obj
             end
 
-            sig { returns(Rbdots::DSL::Packages) }
+            sig { returns(Rbdots::DSL::PackageManagement) }
             def packages
-                @packages ||= Rbdots::DSL::Packages.new(@packages_config)
+                @packages ||= Rbdots::DSL::PackageManagement.new(@packages_config)
             end
 
             sig { returns(Rbdots::DSL::Programs) }

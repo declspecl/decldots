@@ -9,10 +9,16 @@ module Rbdots
     class Engine
         extend T::Sig
 
+        sig { returns(Rbdots::StateManager) }
+        attr_reader :state_manager
+
+        sig { returns(Rbdots::DotfilesManager) }
+        attr_reader :dotfiles_manager
+
         sig { void }
         def initialize
-            @state_manager = T.let(StateManager.new, StateManager)
-            @dotfiles_manager = T.let(DotfilesManager.new, DotfilesManager)
+            @state_manager = T.let(Rbdots::StateManager.new, Rbdots::StateManager)
+            @dotfiles_manager = T.let(Rbdots::DotfilesManager.new, Rbdots::DotfilesManager)
         end
 
         sig { params(config: Rbdots::DSL::Configuration).returns(T::Boolean) }

@@ -49,7 +49,6 @@ module Rbdots
 
             sig { params(options: T::Hash[Symbol, T.untyped]).returns(Symbol) }
             def detect_shell_type(options)
-                # Could be made more sophisticated based on system shell or explicit option
                 options[:shell_type]&.to_sym || :zsh
             end
 
@@ -111,9 +110,9 @@ module Rbdots
 
                 if shell_type == :zsh
                     lines << "# Zsh options"
-                    lines << "setopt AUTO_CD" # Enable auto cd
-                    lines << "setopt CORRECT" # Enable command correction
-                    lines << "setopt HIST_VERIFY" # Show command before executing from history
+                    lines << "setopt AUTO_CD"
+                    lines << "setopt CORRECT"
+                    lines << "setopt HIST_VERIFY"
 
                     if options[:enable_completion]
                         lines << ""
@@ -125,19 +124,17 @@ module Rbdots
                     if options[:enable_autosuggestion]
                         lines << ""
                         lines << "# Enable autosuggestions (requires zsh-autosuggestions plugin)"
-                        lines << "# Install with: brew install zsh-autosuggestions"
                         lines << "source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null || true"
                     end
 
                     if options[:enable_syntax_highlighting]
                         lines << ""
                         lines << "# Enable syntax highlighting (requires zsh-syntax-highlighting plugin)"
-                        lines << "# Install with: brew install zsh-syntax-highlighting"
                         lines << "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null || true"
                     end
                 elsif shell_type == :bash
                     lines << "# Bash options"
-                    lines << "set -o vi" # Enable vi mode
+                    lines << "set -o vi"
 
                     if options[:enable_completion]
                         lines << ""

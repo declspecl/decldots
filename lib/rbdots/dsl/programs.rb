@@ -7,36 +7,39 @@ module Rbdots
         class Programs
             extend T::Sig
 
-            sig { params(programs_hash: T::Hash[Symbol, T.untyped]).void }
+            sig { returns(T::Hash[Symbol, ProgramConfiguration]) }
+            attr_reader :programs
+
+            sig { params(programs_hash: T::Hash[Symbol, ProgramConfiguration]).void }
             def initialize(programs_hash)
                 @programs = programs_hash
             end
 
-            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            sig { params(block: T.nilable(T.proc.bind(ProgramConfiguration).void)).void }
             def zsh(&block)
                 config = ProgramConfiguration.new
                 config.instance_eval(&block) if block_given?
                 @programs[:zsh] = config
             end
 
-            sig { params(_block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void.checked(:never) }
-            def bash(&_block)
+            sig { params(block: T.nilable(T.proc.bind(ProgramConfiguration).void)).void }
+            def bash(&block)
                 config = ProgramConfiguration.new
-                yield(config) if block_given?
+                config.instance_eval(&block) if block_given?
                 @programs[:bash] = config
             end
 
-            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            sig { params(block: T.nilable(T.proc.bind(ProgramConfiguration).void)).void }
             def git(&block)
                 config = ProgramConfiguration.new
                 config.instance_eval(&block) if block_given?
                 @programs[:git] = config
             end
 
-            sig { params(_block: T.nilable(T.proc.params(config: ProgramConfiguration).void)).void.checked(:never) }
-            def vscode(&_block)
+            sig { params(block: T.nilable(T.proc.bind(ProgramConfiguration).void)).void }
+            def vscode(&block)
                 config = ProgramConfiguration.new
-                yield(config) if block_given?
+                config.instance_eval(&block) if block_given?
                 @programs[:vscode] = config
             end
         end
@@ -53,22 +56,22 @@ module Rbdots
                 @options = T.let({}, T::Hash[Symbol, T.untyped])
             end
 
-            sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable_completion(enabled: true)
+            sig { params(enabled: T::Boolean).void }
+            def enable_completion(enabled = true)
                 @options[:enable_completion] = enabled
             end
 
-            sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable_autosuggestion(enabled: true)
+            sig { params(enabled: T::Boolean).void }
+            def enable_autosuggestion(enabled = true)
                 @options[:enable_autosuggestion] = enabled
             end
 
-            sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable_syntax_highlighting(enabled: true)
+            sig { params(enabled: T::Boolean).void }
+            def enable_syntax_highlighting(enabled = true)
                 @options[:enable_syntax_highlighting] = enabled
             end
 
-            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            sig { params(block: T.nilable(T.proc.bind(AliasesConfiguration).void)).void }
             def aliases(&block)
                 aliases_config = AliasesConfiguration.new
                 aliases_config.instance_eval(&block) if block_given?
@@ -80,7 +83,7 @@ module Rbdots
                 @options[:shell_init] = script
             end
 
-            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            sig { params(block: T.nilable(T.proc.bind(OhMyZshConfiguration).void)).void }
             def oh_my_zsh(&block)
                 omz_config = OhMyZshConfiguration.new
                 omz_config.instance_eval(&block) if block_given?
@@ -102,12 +105,12 @@ module Rbdots
                 @options[:default_branch] = branch
             end
 
-            sig { params(enabled: T.nilable(T::Boolean)).void }
-            def pull_rebase(enabled: true)
+            sig { params(enabled: T::Boolean).void }
+            def pull_rebase(enabled = true)
                 @options[:pull_rebase] = enabled
             end
 
-            sig { params(vars: T::Hash[Symbol, T.untyped]).void }
+            sig { params(vars: T::Hash[String, String]).void }
             def environment_variables(vars)
                 @options[:environment_variables] = vars
             end
@@ -127,18 +130,18 @@ module Rbdots
         class AliasesConfiguration
             extend T::Sig
 
-            sig { returns(T::Hash[Symbol, T.untyped]) }
+            sig { returns(T::Hash[Symbol, String]) }
             attr_reader :aliases
 
             sig { void }
             def initialize
-                @aliases = T.let({}, T::Hash[Symbol, T.untyped])
+                @aliases = T.let({}, T::Hash[Symbol, String])
             end
 
-            sig { params(name: Symbol, command: T.nilable(String)).void }
-            def method_missing(name, command = nil)
-                if command
-                    @aliases[name] = command
+            sig { params(name: Symbol, args: T.untyped).returns(T.untyped) }
+            def method_missing(name, *args)
+                if args.length == 1 && args.first.is_a?(String)
+                    @aliases[name] = args.first
                 else
                     super
                 end
@@ -149,7 +152,7 @@ module Rbdots
                 true
             end
 
-            sig { returns(T::Hash[Symbol, T.untyped]) }
+            sig { returns(T::Hash[Symbol, String]) }
             def to_hash
                 @aliases
             end
@@ -167,8 +170,8 @@ module Rbdots
                 @config = T.let({}, T::Hash[Symbol, T.untyped])
             end
 
-            sig { params(enabled: T.nilable(T::Boolean)).void }
-            def enable(enabled: true)
+            sig { params(enabled: T::Boolean).void }
+            def enable(enabled = true)
                 @config[:enable] = enabled
             end
 

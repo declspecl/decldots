@@ -95,7 +95,6 @@ module Rbdots
 
             sig { override.params(package: String).returns(T::Boolean) }
             def installed?(package)
-                # See Base implementation for dry-run comment.
                 return false if Rbdots.dry_run?
 
                 execute_command("brew list #{package}", capture_output: true)

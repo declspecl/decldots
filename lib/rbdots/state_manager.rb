@@ -21,23 +21,20 @@ module Rbdots
         sig { returns(String) }
         attr_reader :checkpoints_dir
 
-        STATE_DIR = T.let(File.expand_path("~/.rbdots"), String)
-        STATE_FILE = T.let(File.join(STATE_DIR, "state.json"), String)
-        CHECKPOINTS_DIR = T.let(File.join(STATE_DIR, "checkpoints"), String)
-
         sig { void }
         def initialize
+            @state_dir = T.let(File.expand_path("~/.rbdots"), String)
+            @state_file = T.let(File.join(state_dir, "state.json"), String)
+            @checkpoints_dir = T.let(File.join(state_dir, "checkpoints"), String)
+            
             ensure_state_directory_exists
             @state = T.let(load_state, T::Hash[Symbol, T.untyped])
-            @state_dir = T.let(STATE_DIR, String)
-            @state_file = T.let(STATE_FILE, String)
-            @checkpoints_dir = T.let(CHECKPOINTS_DIR, String)
         end
 
         sig { returns(String) }
         def create_checkpoint
             checkpoint_id = Time.now.strftime("%Y%m%d_%H%M%S")
-            checkpoint_file = File.join(CHECKPOINTS_DIR, "#{checkpoint_id}.json")
+            checkpoint_file = File.join(checkpoints_dir, "#{checkpoint_id}.json")
 
             ensure_checkpoints_directory_exists
             File.write(checkpoint_file, JSON.pretty_generate(@state))
@@ -48,7 +45,7 @@ module Rbdots
 
         sig { params(checkpoint_id: String).returns(T::Boolean) }
         def rollback_to(checkpoint_id)
-            checkpoint_file = File.join(CHECKPOINTS_DIR, "#{checkpoint_id}.json")
+            checkpoint_file = File.join(checkpoints_dir, "#{checkpoint_id}.json")
 
             raise ConfigurationError, "Checkpoint not found: #{checkpoint_id}" unless File.exist?(checkpoint_file)
 
@@ -62,7 +59,7 @@ module Rbdots
 
         sig { void }
         def save_state
-            File.write(STATE_FILE, JSON.pretty_generate(@state))
+            File.write(state_file, JSON.pretty_generate(@state))
         end
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -111,9 +108,9 @@ module Rbdots
 
         sig { returns(T::Array[String]) }
         def list_checkpoints
-            return [] unless Dir.exist?(CHECKPOINTS_DIR)
+            return [] unless Dir.exist?(checkpoints_dir)
 
-            Dir.entries(CHECKPOINTS_DIR)
+            Dir.entries(checkpoints_dir)
                .select { |file| file.end_with?(".json") }
                .map { |file| File.basename(file, ".json") }
                .sort.reverse
@@ -127,7 +124,7 @@ module Rbdots
 
             to_remove = checkpoints[keep_count..]
             to_remove&.each do |checkpoint_id|
-                checkpoint_file = File.join(CHECKPOINTS_DIR, "#{checkpoint_id}.json")
+                checkpoint_file = File.join(checkpoints_dir, "#{checkpoint_id}.json")
                 FileUtils.rm_f(checkpoint_file)
                 puts "Removed old checkpoint: #{checkpoint_id}"
             end
@@ -148,8 +145,8 @@ module Rbdots
 
         sig { returns(T::Hash[Symbol, T.untyped]) }
         def load_state
-            if File.exist?(STATE_FILE)
-                JSON.parse(File.read(STATE_FILE))
+            if File.exist?(state_file)
+                JSON.parse(File.read(state_file))
             else
                 create_default_state
             end
@@ -171,12 +168,12 @@ module Rbdots
 
         sig { void }
         def ensure_state_directory_exists
-            FileUtils.mkdir_p(STATE_DIR) unless Dir.exist?(STATE_DIR)
+            FileUtils.mkdir_p(state_dir) unless Dir.exist?(state_dir)
         end
 
         sig { void }
         def ensure_checkpoints_directory_exists
-            FileUtils.mkdir_p(CHECKPOINTS_DIR) unless Dir.exist?(CHECKPOINTS_DIR)
+            FileUtils.mkdir_p(checkpoints_dir) unless Dir.exist?(checkpoints_dir)
         end
     end
 end

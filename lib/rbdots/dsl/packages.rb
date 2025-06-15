@@ -4,16 +4,16 @@
 module Rbdots
     module DSL
         # Package management DSL interface
-        class Packages
+        class PackageManagement
             extend T::Sig
 
-            sig { params(packages_hash: T::Hash[Symbol, T.untyped]).void }
+            sig { returns(T::Hash[Symbol, PackageManagerConfiguration]) }
+            attr_reader :packages
+
+            sig { params(packages_hash: T::Hash[Symbol, PackageManagerConfiguration]).void }
             def initialize(packages_hash)
                 @packages = packages_hash
             end
-
-            sig { returns(T::Hash[Symbol, T.untyped]) }
-            attr_reader :packages
 
             sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
             def homebrew(&block)
@@ -120,10 +120,6 @@ module Rbdots
 
             private
 
-            # Validate package names are non-empty strings
-            #
-            # @param packages [Array<String>] Package names to validate
-            # @raise [ValidationError] If any package name is invalid
             sig { params(packages: T::Array[String]).void }
             def validate_package_names(packages)
                 packages.each do |package|
@@ -133,10 +129,6 @@ module Rbdots
                 end
             end
 
-            # Validate tap names are properly formatted
-            #
-            # @param taps [Array<String>] Tap names to validate
-            # @raise [ValidationError] If any tap name is invalid
             sig { params(taps: T::Array[String]).void }
             def validate_tap_names(taps)
                 taps.each do |tap|
