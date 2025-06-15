@@ -28,9 +28,9 @@ module Rbdots
             checkpoint = @state_manager.create_checkpoint
 
             begin
-                apply_packages(config.packages_config) if config.packages_config.any?
-                apply_programs(config.programs_config) if config.programs_config.any?
-                apply_dotfiles(config.dotfiles) if config.dotfiles
+                apply_packages(config.packages.packages) if config.packages.packages.any?
+                apply_programs(config.programs.programs) if config.programs.programs.any?
+                apply_dotfiles(config.dotfiles_config) if config.dotfiles_config
 
                 @state_manager.save_state
                 true
@@ -47,9 +47,9 @@ module Rbdots
 
             changes = T.let({}, T::Hash[String, T.untyped])
 
-            changes["packages"] = diff_packages(config.packages_config) if config.packages_config.any?
-            changes["programs"] = diff_programs(config.programs_config) if config.programs_config.any?
-            changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles
+            changes["packages"] = diff_packages(config.packages.packages) if config.packages.packages.any?
+            changes["programs"] = diff_programs(config.programs.programs) if config.programs.programs.any?
+            changes["dotfiles"] = diff_dotfiles(config.dotfiles_config) if config.dotfiles_config
 
             changes
         end
@@ -71,7 +71,7 @@ module Rbdots
             true
         end
 
-        sig { params(packages: T::Hash[Symbol, T.untyped]).void }
+        sig { params(packages: T::Hash[Symbol, Rbdots::DSL::PackageManagerConfiguration]).void }
         def apply_packages(packages)
             packages.each do |package_manager_name, package_config|
                 if Rbdots.dry_run?
@@ -108,7 +108,7 @@ module Rbdots
             end
         end
 
-        sig { params(programs: T::Hash[Symbol, T.untyped]).void }
+        sig { params(programs: T::Hash[Symbol, Rbdots::DSL::ProgramConfiguration]).void }
         def apply_programs(programs)
             programs.each do |program_name, program_config|
                 program_class = Rbdots.get_program(program_name)
@@ -133,7 +133,7 @@ module Rbdots
             end
         end
 
-        sig { params(packages: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
+        sig { params(packages: T::Hash[Symbol, Rbdots::DSL::PackageManagerConfiguration]).returns(T::Hash[Symbol, T.untyped]) }
         def diff_packages(packages)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 
@@ -153,7 +153,7 @@ module Rbdots
             changes
         end
 
-        sig { params(programs: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
+        sig { params(programs: T::Hash[Symbol, Rbdots::DSL::ProgramConfiguration]).returns(T::Hash[Symbol, T.untyped]) }
         def diff_programs(programs)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 

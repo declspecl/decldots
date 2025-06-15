@@ -10,12 +10,12 @@ module Rbdots
             sig { returns(T::Hash[Symbol, PackageManagerConfiguration]) }
             attr_reader :packages
 
-            sig { params(packages_hash: T::Hash[Symbol, PackageManagerConfiguration]).void }
+            sig { params(packages_hash: T::Hash[Symbol, T.untyped]).void }
             def initialize(packages_hash)
-                @packages = packages_hash
+                @packages = T.let({}, T::Hash[Symbol, PackageManagerConfiguration])
             end
 
-            sig { params(block: T.nilable(T.proc.void)).void.checked(:never) }
+            sig { params(block: T.nilable(T.proc.bind(PackageManagerConfiguration).void)).void.checked(:never) }
             def homebrew(&block)
                 config = PackageManagerConfiguration.new
                 config.instance_eval(&block) if block_given?

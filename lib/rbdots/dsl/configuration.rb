@@ -20,17 +20,21 @@ module Rbdots
             sig { returns(Rbdots::DSL::UserConfiguration) }
             attr_reader :user_config
 
+            sig { returns(T.nilable(Rbdots::DSL::Dotfiles)) }
+            attr_reader :dotfiles_config
+
             sig { void }
             def initialize
                 @packages_config = T.let({}, T::Hash[Symbol, T.untyped])
                 @programs_config = T.let({}, T::Hash[Symbol, T.untyped])
                 @dotfiles = T.let(nil, T.nilable(Rbdots::DSL::Dotfiles))
+                @dotfiles_config = T.let(nil, T.nilable(Rbdots::DSL::Dotfiles))
                 @user_config = T.let(UserConfiguration.new, Rbdots::DSL::UserConfiguration)
                 @packages = T.let(nil, T.nilable(Rbdots::DSL::PackageManagement))
                 @programs = T.let(nil, T.nilable(Rbdots::DSL::Programs))
             end
 
-            sig { params(block: T.nilable(T.proc.void)).void }
+            sig { params(block: T.nilable(T.proc.bind(Rbdots::DSL::UserConfiguration).void)).void }
             def user(&block)
                 user_config_obj = UserConfiguration.new
                 user_config_obj.instance_eval(&block) if block
@@ -47,10 +51,11 @@ module Rbdots
                 @programs ||= Rbdots::DSL::Programs.new(@programs_config)
             end
 
-            sig { params(block: T.nilable(T.proc.void)).returns(Rbdots::DSL::Dotfiles) }
+            sig { params(block: T.nilable(T.proc.bind(Rbdots::DSL::Dotfiles).void)).returns(Rbdots::DSL::Dotfiles) }
             def dotfiles(&block)
                 @dotfiles = Rbdots::DSL::Dotfiles.new
                 @dotfiles.instance_eval(&block) if block
+                @dotfiles_config = @dotfiles
                 @dotfiles
             end
 
@@ -66,7 +71,9 @@ module Rbdots
 
             sig { void }
             def validate_packages!
-                @packages_config.each do |package_manager_name, package_config|
+                return unless @packages
+
+                @packages.packages.each do |package_manager_name, package_config|
                     unless Rbdots.package_managers.key?(package_manager_name)
                         raise ValidationError, 
                               "Unknown package manager: #{package_manager_name}"
@@ -78,7 +85,9 @@ module Rbdots
 
             sig { void }
             def validate_programs!
-                @programs_config.each do |program_name, program_config|
+                return unless @programs
+
+                @programs.programs.each do |program_name, program_config|
                     unless Rbdots.programs.key?(program_name)
                         raise ValidationError, 
                               "Unknown program program: #{program_name}"

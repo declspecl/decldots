@@ -10,9 +10,9 @@ module Rbdots
             sig { returns(T::Hash[Symbol, ProgramConfiguration]) }
             attr_reader :programs
 
-            sig { params(programs_hash: T::Hash[Symbol, ProgramConfiguration]).void }
+            sig { params(programs_hash: T::Hash[Symbol, T.untyped]).void }
             def initialize(programs_hash)
-                @programs = programs_hash
+                @programs = T.let({}, T::Hash[Symbol, ProgramConfiguration])
             end
 
             sig { params(block: T.nilable(T.proc.bind(ProgramConfiguration).void)).void }
@@ -136,6 +136,24 @@ module Rbdots
             sig { void }
             def initialize
                 @aliases = T.let({}, T::Hash[Symbol, String])
+            end
+
+            # Generic method to set any alias
+            sig { params(name: Symbol, command: String).void }
+            def set(name, command)
+                @aliases[name] = command
+            end
+
+            # Allow hash-style access for setting aliases
+            sig { params(name: Symbol, command: String).void }
+            def []=(name, command)
+                @aliases[name] = command
+            end
+
+            # Allow hash-style access for getting aliases
+            sig { params(name: Symbol).returns(T.nilable(String)) }
+            def [](name)
+                @aliases[name]
             end
 
             sig { params(name: Symbol, args: T.untyped).returns(T.untyped) }
