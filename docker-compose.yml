@@ -1,21 +1,21 @@
 version: '3.8'
 
 services:
-  rbdots-test:
+  decldots-test:
     build: .
-    container_name: rbdots-sandbox
+    container_name: decldots-sandbox
     volumes:
       # Mount the project directory to allow for live code changes during development
-      - .:/home/testuser/rbdots
+      - .:/home/testuser/decldots
       # Mount a volume for persistent testing data
-      - rbdots-test-data:/home/testuser/.rbdots-test
+      - decldots-test-data:/home/testuser/.decldots-test
     environment:
       - RBDOTS_DRY_RUN=true
       - TERM=xterm-256color
     stdin_open: true
     tty: true
-    working_dir: /home/testuser/rbdots
+    working_dir: /home/testuser/decldots
     command: /bin/bash -l
 
 volumes:
-  rbdots-test-data: 
+  decldots-test-data: 

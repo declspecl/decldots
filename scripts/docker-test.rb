@@ -2,14 +2,14 @@
 # typed: false
 # frozen_string_literal: true
 
-require_relative "../lib/rbdots"
+require_relative "../lib/decldots"
 
 # Docker-specific test configuration
-Rbdots.configure do |config|
+Decldots.configure do |config|
     # Enable dry-run mode for safety
     config.dry_run = true
 
-    puts "🐳 Running Rbdots tests in Docker environment"
+    puts "🐳 Running Decldots tests in Docker environment"
     puts "📁 Current working directory: #{Dir.pwd}"
     puts "👤 Current user: #{`whoami`.strip}"
     puts "🏠 Home directory: #{ENV["HOME"]}"
@@ -57,7 +57,7 @@ Rbdots.configure do |config|
     # Test dotfiles management
     puts "📄 Testing dotfiles management..."
     config.dotfiles do
-        source_dir "#{ENV["HOME"]}/.rbdots/dotfiles"
+        source_dir "#{ENV["HOME"]}/.decldots/dotfiles"
 
         link "nvim", to: "#{ENV["HOME"]}/.config/nvim", mutable: true
         link "emacs", to: "#{ENV["HOME"]}/.config/emacs", mutable: false
@@ -69,10 +69,10 @@ end
 puts "✅ Docker test configuration completed successfully!"
 puts ""
 puts "To run the actual configuration:"
-puts "  bundle exec rbdots apply"
+puts "  bundle exec decldots apply"
 puts ""
 puts "To see what would be changed:"
-puts "  bundle exec rbdots diff"
+puts "  bundle exec decldots diff"
 puts ""
 puts "To test individual commands:"
-puts "  bundle exec rbdots example"
+puts "  bundle exec decldots example"

@@ -3,7 +3,7 @@
 
 require_relative "base"
 
-module Rbdots
+module Decldots
     module DSL
         module ProgramConfigs
             # Configuration for Git program

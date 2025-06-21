@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-module Rbdots
+module Decldots
     module DSL
         # Package management DSL interface
         class PackageManagement
@@ -10,9 +10,9 @@ module Rbdots
             sig { returns(T::Hash[Symbol, PackageManagerConfiguration]) }
             attr_reader :packages
 
-            sig { params(packages_hash: T::Hash[Symbol, T.untyped]).void }
-            def initialize(packages_hash = {})
-                @packages = T.let(packages_hash, T::Hash[Symbol, PackageManagerConfiguration])
+            sig { void }
+            def initialize
+                @packages = T.let({}, T::Hash[Symbol, PackageManagerConfiguration])
             end
 
             sig { params(block: T.proc.bind(PackageManagerConfiguration).void).void.checked(:never) }

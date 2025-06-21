@@ -1,6 +1,6 @@
 # Docker Testing Environment
 
-This directory includes a complete Docker environment for safely testing Rbdots without affecting your host system.
+This directory includes a complete Docker environment for safely testing Decldots without affecting your host system.
 
 ## Quick Start
 
@@ -11,10 +11,10 @@ This directory includes a complete Docker environment for safely testing Rbdots 
 docker-compose up --build -d
 
 # Enter the interactive shell
-docker-compose exec rbdots-test /bin/bash
+docker-compose exec decldots-test /bin/bash
 ```
 
-### 2. Test Rbdots
+### 2. Test Decldots
 
 Once inside the container:
 
@@ -23,9 +23,9 @@ Once inside the container:
 ruby scripts/docker-test.rb
 
 # Or use the CLI commands
-bundle exec rbdots example
-bundle exec rbdots diff
-bundle exec rbdots apply
+bundle exec decldots example
+bundle exec decldots diff
+bundle exec decldots apply
 ```
 
 ## Available Test Scenarios
@@ -34,13 +34,13 @@ bundle exec rbdots apply
 
 ```bash
 # Test the example configuration
-bundle exec rbdots example
+bundle exec decldots example
 
 # See what changes would be made
-bundle exec rbdots diff
+bundle exec decldots diff
 
 # Apply configuration in dry-run mode (safe)
-bundle exec rbdots apply
+bundle exec decldots apply
 ```
 
 ### Advanced Testing
@@ -58,7 +58,7 @@ exit  # Return to bash
 
 # Verify dotfiles creation
 ls -la ~/.config/
-ls -la ~/.rbdots/
+ls -la ~/.decldots/
 ```
 
 ## Container Features
@@ -75,7 +75,7 @@ ls -la ~/.rbdots/
 - Non-root user `testuser` with sudo access
 - Clean home directory for realistic testing
 - Proper shell environment configuration
-- Rbdots CLI available in PATH
+- Decldots CLI available in PATH
 
 ### Safety Features
 - **Dry-run mode** enabled by default via environment variable
@@ -91,7 +91,7 @@ The Docker environment provides:
 2. **Complete Ruby toolchain** with proper version management
 3. **Package manager support** for testing installations
 4. **User permissions** that match real-world usage
-5. **Pre-configured directories** that Rbdots expects
+5. **Pre-configured directories** that Decldots expects
 
 ## Development Workflow
 
@@ -104,9 +104,9 @@ The docker-compose setup mounts your local project directory into the container,
 3. No need to rebuild for code changes
 
 ```bash
-# Make changes to lib/rbdots/*.rb on your host
+# Make changes to lib/decldots/*.rb on your host
 # Then in the container:
-bundle exec rbdots apply  # Tests your changes immediately
+bundle exec decldots apply  # Tests your changes immediately
 ```
 
 ### Container Management
@@ -116,10 +116,10 @@ bundle exec rbdots apply  # Tests your changes immediately
 docker-compose up -d
 
 # Enter the container
-docker-compose exec rbdots-test /bin/bash
+docker-compose exec decldots-test /bin/bash
 
 # View logs
-docker-compose logs rbdots-test
+docker-compose logs decldots-test
 
 # Stop the container
 docker-compose down
@@ -166,7 +166,7 @@ git config --list  # Should display all settings
 ### Container Won't Start
 ```bash
 # Check for port conflicts or permission issues
-docker-compose logs rbdots-test
+docker-compose logs decldots-test
 
 # Clean rebuild
 docker-compose down -v
@@ -202,4 +202,4 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 - All package installations are contained within the container
 - Easy to reset by destroying and recreating the container
 
-This Docker environment provides a completely safe sandbox for testing Rbdots functionality without any risk to your host system! 
+This Docker environment provides a completely safe sandbox for testing Decldots functionality without any risk to your host system! 

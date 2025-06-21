@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-module Rbdots
+module Decldots
     module Programs
         # Base class for all program configuration programs
         class Base
@@ -34,15 +34,15 @@ module Rbdots
             def write_file(file_path, content, backup: true)
                 original_path = File.expand_path(file_path)
 
-                actual_path = Rbdots.dry_run_path(original_path)
+                actual_path = Decldots.dry_run_path(original_path)
 
                 FileUtils.mkdir_p(File.dirname(actual_path))
 
-                backup_file(actual_path) if backup && !Rbdots.dry_run? && File.exist?(actual_path)
+                backup_file(actual_path) if backup && !Decldots.dry_run? && File.exist?(actual_path)
 
                 File.write(actual_path, content)
 
-                if Rbdots.dry_run?
+                if Decldots.dry_run?
                     puts "Would create configuration file: #{original_path} (dry run: #{actual_path})"
                 else
                     puts "Created configuration file: #{original_path}"
@@ -60,7 +60,7 @@ module Rbdots
             sig { params(template_path: String, variables: T::Hash[T.any(String, Symbol), T.untyped]).returns(String) }
             def process_template(template_path, variables = {})
                 unless File.exist?(template_path)
-                    raise Rbdots::ConfigurationError, 
+                    raise Decldots::ConfigurationError, 
                           "Template file not found: #{template_path}"
                 end
 

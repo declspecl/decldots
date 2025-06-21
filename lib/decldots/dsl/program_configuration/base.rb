@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-module Rbdots
+module Decldots
     module DSL
         module ProgramConfigs
             # Base configuration class for all program configurations

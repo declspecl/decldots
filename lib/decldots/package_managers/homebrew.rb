@@ -3,7 +3,7 @@
 
 require_relative "base"
 
-module Rbdots
+module Decldots
     module PackageManagers
         # Homebrew package manager implementation
         class Homebrew < Base
@@ -95,7 +95,7 @@ module Rbdots
 
             sig { override.params(package: String).returns(T::Boolean) }
             def installed?(package)
-                return false if Rbdots.dry_run?
+                return false if Decldots.dry_run?
 
                 execute_command("brew list #{package}", capture_output: true)
                 true
@@ -105,7 +105,7 @@ module Rbdots
 
             sig { params(cask: String).returns(T::Boolean) }
             def cask_installed?(cask)
-                return false if Rbdots.dry_run?
+                return false if Decldots.dry_run?
 
                 execute_command("brew list --cask #{cask}", capture_output: true)
                 true
@@ -115,7 +115,7 @@ module Rbdots
 
             sig { params(tap: String).returns(T::Boolean) }
             def tap_exists?(tap)
-                return false if Rbdots.dry_run?
+                return false if Decldots.dry_run?
 
                 taps = T.cast(execute_command("brew tap", capture_output: true), String)
                 taps.include?(tap)

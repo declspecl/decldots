@@ -2,11 +2,11 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../lib/rbdots"
+require_relative "../lib/decldots"
 
-Rbdots.enable_dry_run
+Decldots.enable_dry_run
 
-config = Rbdots.configure do |config|
+config = Decldots.configure do |config|
     config.user do
         name "dec"
         email "gavind2559@gmail.com"
@@ -65,7 +65,7 @@ config = Rbdots.configure do |config|
     end
 
     config.dotfiles do
-        source_directory "~/.rbdots/dotfiles"
+        source_directory "~/.decldots/dotfiles"
 
         link "emacs", mutable: true
         link "nvim", mutable: true
@@ -80,8 +80,8 @@ config = Rbdots.configure do |config|
 end
 
 puts "=== Applying Configuration in Dry Run Mode ==="
-Rbdots.apply(config)
+Decldots.apply(config)
 
 puts "\n=== Configuration Diff ==="
 require "pp"
-pp Rbdots.diff(config)
+pp Decldots.diff(config)

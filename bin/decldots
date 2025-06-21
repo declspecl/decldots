@@ -1,26 +1,26 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative "../lib/rbdots"
+require_relative "../lib/decldots"
 require "optparse"
 
 def show_help
     puts <<~HELP
-        Rbdots - Declarative Dotfile Management
+        Decldots - Declarative Dotfile Management
 
         Usage:
-          rbdots apply <config_file>    Apply a configuration file
-          rbdots diff <config_file>     Show what changes would be made
-          rbdots example               Run the example configuration
-          rbdots help                  Show this help message
+          decldots apply <config_file>    Apply a configuration file
+          decldots diff <config_file>     Show what changes would be made
+          decldots example               Run the example configuration
+          decldots help                  Show this help message
 
         Examples:
-          rbdots example               # Run example config (shows diff only)
-          rbdots apply my_config.rb    # Apply your configuration
-          rbdots diff my_config.rb     # Preview changes
+          decldots example               # Run example config (shows diff only)
+          decldots apply my_config.rb    # Apply your configuration
+          decldots diff my_config.rb     # Preview changes
 
         Configuration files should be Ruby files that define a configuration
-        using the Rbdots DSL. See examples/example_config.rb for reference.
+        using the Decldots DSL. See examples/example_config.rb for reference.
     HELP
 end
 
@@ -52,14 +52,14 @@ case command
 when "apply"
     if config_file.nil?
         puts "Error: Please specify a configuration file"
-        puts "Usage: rbdots apply <config_file>"
+        puts "Usage: decldots apply <config_file>"
         exit 1
     end
 
     puts "Applying configuration from: #{config_file}"
     config = load_config_file(config_file)
 
-    if Rbdots.apply(config)
+    if Decldots.apply(config)
         puts "Configuration applied successfully!"
     else
         puts "Failed to apply configuration"
@@ -69,7 +69,7 @@ when "apply"
 when "diff"
     if config_file.nil?
         puts "Error: Please specify a configuration file"
-        puts "Usage: rbdots diff <config_file>"
+        puts "Usage: decldots diff <config_file>"
         exit 1
     end
 
@@ -77,7 +77,7 @@ when "diff"
     config = load_config_file(config_file)
 
     require "pp"
-    pp Rbdots.diff(config)
+    pp Decldots.diff(config)
 
 when "example"
     run_example

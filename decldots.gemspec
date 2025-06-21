@@ -1,23 +1,23 @@
 # frozen_string_literal: true
 
-require_relative "lib/rbdots/version"
+require_relative "lib/decldots/version"
 
 Gem::Specification.new do |spec|
-    spec.name = "rbdots"
-    spec.version = Rbdots::VERSION
+    spec.name = "decldots"
+    spec.version = Decldots::VERSION
     spec.authors = ["dec"]
     spec.email = ["gavind2559@gmail.com"]
 
     spec.summary = "Declarative dotfile management framework"
-    spec.description = "Rbdots is a declarative, extensible dotfile management framework that provides the flexibility of Nix's declarative configuration model without its immutable constraints."
-    spec.homepage = "https://github.com/declspecl/rbdots"
+    spec.description = "Decldots is a declarative, extensible dotfile management framework that provides the flexibility of Nix's declarative configuration model without its immutable constraints."
+    spec.homepage = "https://github.com/declspecl/decldots"
     spec.license = "MIT"
     spec.required_ruby_version = ">= 3.1.0"
 
     spec.metadata["allowed_push_host"] = "https://rubygems.org"
     spec.metadata["homepage_uri"] = spec.homepage
-    spec.metadata["source_code_uri"] = "https://github.com/declspecl/rbdots"
-    spec.metadata["changelog_uri"] = "https://github.com/declspecl/rbdots/blob/main/CHANGELOG.md"
+    spec.metadata["source_code_uri"] = "https://github.com/declspecl/decldots"
+    spec.metadata["changelog_uri"] = "https://github.com/declspecl/decldots/blob/main/CHANGELOG.md"
 
     # Specify which files should be added to the gem when it is released.
     spec.files = Dir.chdir(__dir__) do

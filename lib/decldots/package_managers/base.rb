@@ -2,13 +2,13 @@
 # frozen_string_literal: true
 
 require "English"
-module Rbdots
+module Decldots
     module PackageManagers
         # Error raised when a command execution fails
-        class CommandError < Rbdots::Error; end
+        class CommandError < Decldots::Error; end
 
         # Error raised when a package manager configuration is invalid
-        class ConfigurationError < Rbdots::Error; end
+        class ConfigurationError < Decldots::Error; end
 
         # Base class for all package managers
         class Base
@@ -35,7 +35,7 @@ module Rbdots
 
             sig { params(command: String, capture_output: T::Boolean).returns(T.any(String, T::Boolean)) }
             def execute_command(command, capture_output: false)
-                if Rbdots.dry_run?
+                if Decldots.dry_run?
                     puts "Dry run: Would execute: #{command}"
                     return capture_output ? "" : true
                 end

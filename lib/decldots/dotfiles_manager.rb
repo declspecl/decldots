@@ -3,7 +3,7 @@
 
 require "fileutils"
 
-module Rbdots
+module Decldots
     # Manages dotfile linking and copying operations.
     class DotfilesManager
         extend T::Sig
@@ -17,14 +17,14 @@ module Rbdots
             ).returns(T::Hash[Symbol, T.untyped])
         end
         def link_config(name, mutable: false, source_directory: nil, target: nil)
-            source_directory ||= File.expand_path("~/.rbdots/dotfiles")
+            source_directory ||= File.expand_path("~/.decldots/dotfiles")
             source_path = File.join(source_directory, name)
             target_path = target || File.expand_path("~/.config/#{name}")
 
-            actual_source_path = Rbdots.dry_run_path(source_path)
-            actual_target_path = Rbdots.dry_run_path(target_path)
+            actual_source_path = Decldots.dry_run_path(source_path)
+            actual_target_path = Decldots.dry_run_path(target_path)
 
-            create_dummy_source_file(actual_source_path, name) if Rbdots.dry_run? && !File.exist?(actual_source_path)
+            create_dummy_source_file(actual_source_path, name) if Decldots.dry_run? && !File.exist?(actual_source_path)
 
             validate_link_operation(actual_source_path, actual_target_path)
 
@@ -54,7 +54,7 @@ module Rbdots
             ).returns(T::Hash[Symbol, T.untyped])
         end
         def diff_link(name, mutable: false, source_directory: nil, target: nil)
-            source_directory ||= File.expand_path("~/.rbdots/dotfiles")
+            source_directory ||= File.expand_path("~/.decldots/dotfiles")
             source_path = File.join(source_directory, name)
             target_path = target || File.expand_path("~/.config/#{name}")
 
@@ -166,13 +166,13 @@ module Rbdots
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            if !Rbdots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
+            if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
                 backup_existing_target(target_path)
             end
 
             FileUtils.ln_sf(source_path, target_path)
 
-            if Rbdots.dry_run?
+            if Decldots.dry_run?
                 puts "Would create mutable symlink: #{original_target || target_path} -> #{original_source || source_path} (dry run: #{target_path} -> #{source_path})"
             else
                 puts "Created mutable symlink: #{target_path} -> #{source_path}"
@@ -191,7 +191,7 @@ module Rbdots
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            if !Rbdots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
+            if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
                 backup_existing_target(target_path)
             end
 
@@ -203,7 +203,7 @@ module Rbdots
                 operation = "file"
             end
 
-            if Rbdots.dry_run?
+            if Decldots.dry_run?
                 puts "Would copy #{operation} (immutable): #{original_source || source_path} -> #{original_target || target_path} (dry run: #{source_path} -> #{target_path})"
             else
                 puts "Copied #{operation} (immutable): #{source_path} -> #{target_path}"

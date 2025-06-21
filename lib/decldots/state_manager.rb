@@ -4,7 +4,7 @@
 require "json"
 require "fileutils"
 
-module Rbdots
+module Decldots
     # Manages state tracking and rollback functionality
     class StateManager
         extend T::Sig
@@ -23,7 +23,7 @@ module Rbdots
 
         sig { void }
         def initialize
-            @state_dir = T.let(File.expand_path("~/.rbdots"), String)
+            @state_dir = T.let(File.expand_path("~/.decldots"), String)
             @state_file = T.let(File.join(state_dir, "state.json"), String)
             @checkpoints_dir = T.let(File.join(state_dir, "checkpoints"), String)
             

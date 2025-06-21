@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-module Rbdots
+module Decldots
     module DSL
         # Dotfiles configuration DSL interface
         class Dotfiles
@@ -13,7 +13,7 @@ module Rbdots
             sig { void }
             def initialize
                 @links = T.let([], T::Array[T::Hash[Symbol, T.untyped]])
-                @source_directory = T.let(File.expand_path("~/.rbdots/dotfiles"), String)
+                @source_directory = T.let(File.expand_path("~/.decldots/dotfiles"), String)
             end
 
             sig { params(directory: String).void }
@@ -87,7 +87,7 @@ module Rbdots
             sig { returns(T::Boolean) }
             def validate!
                 unless Dir.exist?(@source_directory)
-                    raise Rbdots::ValidationError, "Source directory does not exist: #{@source_directory}"
+                    raise Decldots::ValidationError, "Source directory does not exist: #{@source_directory}"
                 end
 
                 @links.each do |link_config|
@@ -105,13 +105,13 @@ module Rbdots
                 source = link_config[:source]
                 target = link_config[:target]
 
-                raise Rbdots::ValidationError, "Link name cannot be empty" if name.nil? || name.to_s.strip.empty?
+                raise Decldots::ValidationError, "Link name cannot be empty" if name.nil? || name.to_s.strip.empty?
 
-                raise Rbdots::ValidationError, "Link must have both source and target paths" unless source && target
+                raise Decldots::ValidationError, "Link must have both source and target paths" unless source && target
 
                 # Skip validation for templates as they might not exist yet
                 if link_config[:action] != :template && !File.exist?(source) && !File.directory?(source)
-                    raise Rbdots::ValidationError, "Source path does not exist: #{source}"
+                    raise Decldots::ValidationError, "Source path does not exist: #{source}"
                 end
 
                 target_dir = File.dirname(target)
@@ -120,7 +120,7 @@ module Rbdots
                 begin
                     FileUtils.mkdir_p(target_dir)
                 rescue Errno::EACCES, Errno::EPERM => e
-                    raise Rbdots::ValidationError, "Cannot create target directory #{target_dir}: #{e.message}"
+                    raise Decldots::ValidationError, "Cannot create target directory #{target_dir}: #{e.message}"
                 end
             end
         end

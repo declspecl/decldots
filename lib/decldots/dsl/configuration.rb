@@ -6,7 +6,7 @@ require_relative "programs"
 require_relative "program_configuration/base"
 require_relative "dotfiles"
 
-module Rbdots
+module Decldots
     module DSL
         # Main configuration class that provides the DSL interface
         class Configuration
@@ -18,43 +18,43 @@ module Rbdots
             sig { returns(T::Hash[Symbol, T.untyped]) }
             attr_reader :programs_config
 
-            sig { returns(Rbdots::DSL::UserConfiguration) }
+            sig { returns(Decldots::DSL::UserConfiguration) }
             attr_reader :user_config
 
-            sig { returns(T.nilable(Rbdots::DSL::Dotfiles)) }
+            sig { returns(T.nilable(Decldots::DSL::Dotfiles)) }
             attr_reader :dotfiles_config
 
             sig { void }
             def initialize
                 @packages_config = T.let({}, T::Hash[Symbol, T.untyped])
                 @programs_config = T.let({}, T::Hash[Symbol, T.untyped])
-                @dotfiles = T.let(nil, T.nilable(Rbdots::DSL::Dotfiles))
-                @dotfiles_config = T.let(nil, T.nilable(Rbdots::DSL::Dotfiles))
-                @user_config = T.let(UserConfiguration.new, Rbdots::DSL::UserConfiguration)
-                @packages = T.let(nil, T.nilable(Rbdots::DSL::PackageManagement))
-                @programs = T.let(nil, T.nilable(Rbdots::DSL::Programs))
+                @dotfiles = T.let(nil, T.nilable(Decldots::DSL::Dotfiles))
+                @dotfiles_config = T.let(nil, T.nilable(Decldots::DSL::Dotfiles))
+                @user_config = T.let(UserConfiguration.new, Decldots::DSL::UserConfiguration)
+                @packages = T.let(nil, T.nilable(Decldots::DSL::PackageManagement))
+                @programs = T.let(nil, T.nilable(Decldots::DSL::Programs))
             end
 
-            sig { params(block: T.nilable(T.proc.bind(Rbdots::DSL::UserConfiguration).void)).void }
+            sig { params(block: T.nilable(T.proc.bind(Decldots::DSL::UserConfiguration).void)).void }
             def user(&block)
                 user_config_obj = UserConfiguration.new
                 user_config_obj.instance_eval(&block) if block
                 @user_config = user_config_obj
             end
 
-            sig { returns(Rbdots::DSL::PackageManagement) }
+            sig { returns(Decldots::DSL::PackageManagement) }
             def packages
-                @packages ||= Rbdots::DSL::PackageManagement.new(@packages_config)
+                @packages ||= Decldots::DSL::PackageManagement.new
             end
 
-            sig { returns(Rbdots::DSL::Programs) }
+            sig { returns(Decldots::DSL::Programs) }
             def programs
-                @programs ||= Rbdots::DSL::Programs.new(programs_hash: @programs_config)
+                @programs ||= Decldots::DSL::Programs.new
             end
 
-            sig { params(block: T.nilable(T.proc.bind(Rbdots::DSL::Dotfiles).void)).returns(Rbdots::DSL::Dotfiles) }
+            sig { params(block: T.nilable(T.proc.bind(Decldots::DSL::Dotfiles).void)).returns(Decldots::DSL::Dotfiles) }
             def dotfiles(&block)
-                @dotfiles = Rbdots::DSL::Dotfiles.new
+                @dotfiles = Decldots::DSL::Dotfiles.new
                 @dotfiles.instance_eval(&block) if block
                 @dotfiles_config = @dotfiles
                 @dotfiles
@@ -75,7 +75,7 @@ module Rbdots
                 return unless @packages
 
                 @packages.packages.each do |package_manager_name, package_config|
-                    unless Rbdots.package_managers.key?(package_manager_name)
+                    unless Decldots.package_managers.key?(package_manager_name)
                         raise ValidationError, 
                               "Unknown package manager: #{package_manager_name}"
                     end
@@ -89,7 +89,7 @@ module Rbdots
                 return unless @programs
 
                 @programs.programs.each do |program_name, program_config|
-                    unless Rbdots.programs.key?(program_name)
+                    unless Decldots.programs.key?(program_name)
                         raise ValidationError, 
                               "Unknown program program: #{program_name}"
                     end

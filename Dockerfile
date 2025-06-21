@@ -66,32 +66,32 @@ RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/instal
 # Set up environment for Homebrew
 ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
 
-# Create directories that Rbdots expects
-RUN mkdir -p ~/.rbdots/dotfiles ~/.config
+# Create directories that Decldots expects
+RUN mkdir -p ~/.decldots/dotfiles ~/.config
 
-# Copy the Rbdots project
-COPY --chown=testuser:testuser . /home/testuser/rbdots
+# Copy the Decldots project
+COPY --chown=testuser:testuser . /home/testuser/decldots
 
 # Set working directory to the project
-WORKDIR /home/testuser/rbdots
+WORKDIR /home/testuser/decldots
 
 # Install Ruby dependencies
 RUN ~/.rbenv/shims/gem install bundler && \
     ~/.rbenv/shims/bundle install
 
 # Create some example dotfiles for testing
-RUN mkdir -p ~/.rbdots/dotfiles/nvim ~/.rbdots/dotfiles/emacs && \
-    echo '# Example nvim configuration' > ~/.rbdots/dotfiles/nvim/init.vim && \
-    echo '; Example emacs configuration' > ~/.rbdots/dotfiles/emacs/init.el && \
-    echo '# Example hypr configuration' > ~/.rbdots/dotfiles/hypr && \
-    echo '# Example kitty configuration' > ~/.rbdots/dotfiles/kitty
+RUN mkdir -p ~/.decldots/dotfiles/nvim ~/.decldots/dotfiles/emacs && \
+    echo '# Example nvim configuration' > ~/.decldots/dotfiles/nvim/init.vim && \
+    echo '; Example emacs configuration' > ~/.decldots/dotfiles/emacs/init.el && \
+    echo '# Example hypr configuration' > ~/.decldots/dotfiles/hypr && \
+    echo '# Example kitty configuration' > ~/.decldots/dotfiles/kitty
 
 # Make the binary executable
-RUN chmod +x bin/rbdots
+RUN chmod +x bin/decldots
 
 # Set up shell
-RUN echo 'export PATH="/home/testuser/rbdots/bin:$PATH"' >> ~/.bashrc && \
-    echo 'export PATH="/home/testuser/rbdots/bin:$PATH"' >> ~/.zshrc
+RUN echo 'export PATH="/home/testuser/decldots/bin:$PATH"' >> ~/.bashrc && \
+    echo 'export PATH="/home/testuser/decldots/bin:$PATH"' >> ~/.zshrc
 
 # Default command
 CMD ["/bin/bash", "-l"] 

@@ -3,10 +3,10 @@
 
 require "fileutils"
 require "sorbet-runtime"
-require_relative "rbdots/version"
+require_relative "decldots/version"
 
-# Main namespace for the Rbdots declarative dotfile management framework
-module Rbdots
+# Main namespace for the Decldots declarative dotfile management framework
+module Decldots
     extend T::Sig
 
     class Error < StandardError; end
@@ -14,24 +14,24 @@ module Rbdots
     class ValidationError < Error; end
 end
 
-require_relative "rbdots/package_managers/base"
-require_relative "rbdots/programs/base"
-require_relative "rbdots/engine"
-require_relative "rbdots/dsl/configuration"
+require_relative "decldots/package_managers/base"
+require_relative "decldots/programs/base"
+require_relative "decldots/engine"
+require_relative "decldots/dsl/configuration"
 
-module Rbdots
-    @package_managers = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::PackageManagers::Base)])
-    @programs = T.let({}, T::Hash[Symbol, T.class_of(Rbdots::Programs::Base)])
+module Decldots
+    @package_managers = T.let({}, T::Hash[Symbol, T.class_of(Decldots::PackageManagers::Base)])
+    @programs = T.let({}, T::Hash[Symbol, T.class_of(Decldots::Programs::Base)])
     @dry_run = T.let(false, T::Boolean)
     @dry_run_directory = T.let(nil, T.nilable(String))
 
     class << self
         extend T::Sig
 
-        sig { returns(T::Hash[Symbol, T.class_of(Rbdots::PackageManagers::Base)]) }
+        sig { returns(T::Hash[Symbol, T.class_of(Decldots::PackageManagers::Base)]) }
         attr_reader :package_managers
 
-        sig { returns(T::Hash[Symbol, T.class_of(Rbdots::Programs::Base)]) }
+        sig { returns(T::Hash[Symbol, T.class_of(Decldots::Programs::Base)]) }
         attr_reader :programs
 
         sig { returns(T::Boolean) }
@@ -42,8 +42,8 @@ module Rbdots
 
         sig do 
             params(
-                block: T.nilable(T.proc.params(config: Rbdots::DSL::Configuration).void)
-            ).returns(Rbdots::DSL::Configuration) 
+                block: T.nilable(T.proc.params(config: Decldots::DSL::Configuration).void)
+            ).returns(Decldots::DSL::Configuration) 
         end
         def configure(&block)
             config = DSL::Configuration.new
@@ -51,34 +51,34 @@ module Rbdots
             config
         end
 
-        sig { params(config: Rbdots::DSL::Configuration).returns(T::Boolean) }
+        sig { params(config: Decldots::DSL::Configuration).returns(T::Boolean) }
         def apply(config)
             engine = Engine.new
             engine.apply_configuration(config)
         end
 
-        sig { params(config: Rbdots::DSL::Configuration).returns(T::Hash[String, T.untyped]) }
+        sig { params(config: Decldots::DSL::Configuration).returns(T::Hash[String, T.untyped]) }
         def diff(config)
             engine = Engine.new
             engine.diff_configuration(config)
         end
 
-        sig { params(name: Symbol, manager_class: T.class_of(Rbdots::PackageManagers::Base)).void }
+        sig { params(name: Symbol, manager_class: T.class_of(Decldots::PackageManagers::Base)).void }
         def register_package_manager(name, manager_class)
             @package_managers[name] = manager_class
         end
 
-        sig { params(name: Symbol).returns(T.class_of(Rbdots::PackageManagers::Base)) }
+        sig { params(name: Symbol).returns(T.class_of(Decldots::PackageManagers::Base)) }
         def get_package_manager(name)
             @package_managers[name] || raise(ConfigurationError, "Unknown package manager: #{name}")
         end
 
-        sig { params(name: Symbol, program_class: T.class_of(Rbdots::Programs::Base)).void }
+        sig { params(name: Symbol, program_class: T.class_of(Decldots::Programs::Base)).void }
         def register_program(name, program_class)
             @programs[name] = program_class
         end
 
-        sig { params(name: Symbol).returns(T.class_of(Rbdots::Programs::Base)) }
+        sig { params(name: Symbol).returns(T.class_of(Decldots::Programs::Base)) }
         def get_program(name)
             @programs[name] || raise(ConfigurationError, "Unknown program: #{name}")
         end
@@ -126,7 +126,7 @@ module Rbdots
         sig { params(temp_dir: T.nilable(String)).void }
         def setup_dry_run_environment(temp_dir)
             require "tmpdir"
-            @dry_run_directory = temp_dir || Dir.mktmpdir("rbdots_dry_run_")
+            @dry_run_directory = temp_dir || Dir.mktmpdir("decldots_dry_run_")
             puts "Dry run mode enabled. Files will be created in: #{@dry_run_directory}"
 
             FileUtils.mkdir_p(File.join(@dry_run_directory, "home"))
@@ -141,11 +141,11 @@ module Rbdots
     end
 end
 
-require_relative "rbdots/package_managers/homebrew"
-require_relative "rbdots/programs/shell"
-require_relative "rbdots/programs/git"
+require_relative "decldots/package_managers/homebrew"
+require_relative "decldots/programs/shell"
+require_relative "decldots/programs/git"
 
-Rbdots.register_package_manager(:homebrew, Rbdots::PackageManagers::Homebrew)
-Rbdots.register_program(:zsh, Rbdots::Programs::Shell)
-Rbdots.register_program(:bash, Rbdots::Programs::Shell)
-Rbdots.register_program(:git, Rbdots::Programs::Git)
+Decldots.register_package_manager(:homebrew, Decldots::PackageManagers::Homebrew)
+Decldots.register_program(:zsh, Decldots::Programs::Shell)
+Decldots.register_program(:bash, Decldots::Programs::Shell)
+Decldots.register_program(:git, Decldots::Programs::Git)

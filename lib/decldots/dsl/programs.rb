@@ -5,7 +5,7 @@ require_relative "program_configuration/base"
 require_relative "program_configuration/zsh"
 require_relative "program_configuration/git"
 
-module Rbdots
+module Decldots
     module DSL
         # Program configuration DSL interface
         class Programs
@@ -14,22 +14,22 @@ module Rbdots
             sig { returns(T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration]) }
             attr_reader :programs
 
-            sig { params(programs_hash: T::Hash[Symbol, T.untyped]).void }
-            def initialize(programs_hash = {})
-                @programs = T.let(programs_hash, T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration])
+            sig { void }
+            def initialize
+                @programs = T.let({}, T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration])
             end
 
-            sig { params(block: T.nilable(T.proc.bind(ProgramConfigs::ZshConfiguration).void)).void }
+            sig { params(block: T.proc.bind(ProgramConfigs::ZshConfiguration).void).void }
             def zsh(&block)
                 config = ProgramConfigs::ZshConfiguration.new
-                config.instance_eval(&block) if block_given?
+                config.instance_eval(&block)
                 @programs[:zsh] = config
             end
 
-            sig { params(block: T.nilable(T.proc.bind(ProgramConfigs::GitConfiguration).void)).void }
+            sig { params(block: T.proc.bind(ProgramConfigs::GitConfiguration).void).void }
             def git(&block)
                 config = ProgramConfigs::GitConfiguration.new
-                config.instance_eval(&block) if block_given?
+                config.instance_eval(&block)
                 @programs[:git] = config
             end
         end
