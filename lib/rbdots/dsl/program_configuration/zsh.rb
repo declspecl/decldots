@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require_relative "base"
-require_relative "aliases"
 
 module Rbdots
     module DSL
@@ -14,7 +13,6 @@ module Rbdots
                 sig { void }
                 def initialize
                     super
-                    @options = T.let({}, T::Hash[Symbol, T.untyped])
                     @aliases = T.let({}, T::Hash[Symbol, String])
                     @environment_variables = T.let({}, T::Hash[Symbol, String])
                 end
@@ -44,10 +42,10 @@ module Rbdots
                     @options[:shell_init] = script
                 end
 
-                sig { params(_block: T.proc.params(omz: OhMyZshConfiguration).bind(OhMyZshConfiguration).void).void }
-                def oh_my_zsh(&_block)
+                sig { params(block: T.proc.bind(OhMyZshConfiguration).void).void }
+                def oh_my_zsh(&block)
                     omz_config = OhMyZshConfiguration.new
-                    yield(omz_config)
+                    omz_config.instance_eval(&block)
                     @options[:oh_my_zsh] = omz_config.to_hash
                 end
 

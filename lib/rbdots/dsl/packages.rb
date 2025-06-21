@@ -11,50 +11,50 @@ module Rbdots
             attr_reader :packages
 
             sig { params(packages_hash: T::Hash[Symbol, T.untyped]).void }
-            def initialize(_packages_hash)
-                @packages = T.let({}, T::Hash[Symbol, PackageManagerConfiguration])
+            def initialize(packages_hash = {})
+                @packages = T.let(packages_hash, T::Hash[Symbol, PackageManagerConfiguration])
             end
 
-            sig { params(block: T.nilable(T.proc.bind(PackageManagerConfiguration).void)).void.checked(:never) }
+            sig { params(block: T.proc.bind(PackageManagerConfiguration).void).void.checked(:never) }
             def homebrew(&block)
                 config = PackageManagerConfiguration.new
-                config.instance_eval(&block) if block_given?
+                config.instance_eval(&block)
                 @packages[:homebrew] = config
             end
 
             sig do
-                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+                params(_block: T.proc.params(config: PackageManagerConfiguration).void).void.checked(:never)
             end
             def apt(&_block)
                 config = PackageManagerConfiguration.new
-                yield(config) if block_given?
+                yield(config)
                 @packages[:apt] = config
             end
 
             sig do
-                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+                params(_block: T.proc.params(config: PackageManagerConfiguration).void).void.checked(:never)
             end
             def dnf(&_block)
                 config = PackageManagerConfiguration.new
-                yield(config) if block_given?
+                yield(config)
                 @packages[:dnf] = config
             end
 
             sig do
-                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+                params(_block: T.proc.params(config: PackageManagerConfiguration).void).void.checked(:never)
             end
             def pacman(&_block)
                 config = PackageManagerConfiguration.new
-                yield(config) if block_given?
+                yield(config)
                 @packages[:pacman] = config
             end
 
             sig do
-                params(_block: T.nilable(T.proc.params(config: PackageManagerConfiguration).void)).void.checked(:never)
+                params(_block: T.proc.params(config: PackageManagerConfiguration).void).void.checked(:never)
             end
             def yay(&_block)
                 config = PackageManagerConfiguration.new
-                yield(config) if block_given?
+                yield(config)
                 @packages[:yay] = config
             end
         end

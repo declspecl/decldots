@@ -14,8 +14,8 @@ module Rbdots
             sig { returns(T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration]) }
             attr_reader :programs
 
-            sig { params(programs_hash: T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration]).void }
-            def initialize(programs_hash: {})
+            sig { params(programs_hash: T::Hash[Symbol, T.untyped]).void }
+            def initialize(programs_hash = {})
                 @programs = T.let(programs_hash, T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration])
             end
 

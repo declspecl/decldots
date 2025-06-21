@@ -49,7 +49,7 @@ module Rbdots
 
             sig { returns(Rbdots::DSL::Programs) }
             def programs
-                @programs ||= Rbdots::DSL::Programs.new(@programs_config)
+                @programs ||= Rbdots::DSL::Programs.new(programs_hash: @programs_config)
             end
 
             sig { params(block: T.nilable(T.proc.bind(Rbdots::DSL::Dotfiles).void)).returns(Rbdots::DSL::Dotfiles) }
