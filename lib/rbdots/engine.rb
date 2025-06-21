@@ -108,7 +108,7 @@ module Rbdots
             end
         end
 
-        sig { params(programs: T::Hash[Symbol, Rbdots::DSL::ProgramConfiguration]).void }
+        sig { params(programs: T::Hash[Symbol, Rbdots::DSL::ProgramConfigs::BaseProgramConfiguration]).void }
         def apply_programs(programs)
             programs.each do |program_name, program_config|
                 program_class = Rbdots.get_program(program_name)
@@ -133,7 +133,10 @@ module Rbdots
             end
         end
 
-        sig { params(packages: T::Hash[Symbol, Rbdots::DSL::PackageManagerConfiguration]).returns(T::Hash[Symbol, T.untyped]) }
+        sig do
+            params(packages: T::Hash[Symbol, 
+                                     Rbdots::DSL::PackageManagerConfiguration]).returns(T::Hash[Symbol, T.untyped])
+        end
         def diff_packages(packages)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 
@@ -153,7 +156,11 @@ module Rbdots
             changes
         end
 
-        sig { params(programs: T::Hash[Symbol, Rbdots::DSL::ProgramConfiguration]).returns(T::Hash[Symbol, T.untyped]) }
+        sig do
+            params(programs: T::Hash[Symbol, 
+                                     Rbdots::DSL::ProgramConfigs::BaseProgramConfiguration]).returns(T::Hash[Symbol, 
+                                                                                                             T.untyped])
+        end
         def diff_programs(programs)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 

@@ -23,20 +23,23 @@ config = Rbdots.configure do |config|
     end
 
     config.programs.zsh do
-        enable_completion true
-        enable_autosuggestion true
-        enable_syntax_highlighting true
+        enable_completion
+        enable_autosuggestion
+        enable_syntax_highlighting
 
-        aliases do
-            set :ls, "eza"
-            set :cls, "clear"
-            set :hmbs, "rbdots apply"
-        end
+        set_alias :ls, "eza"
+        set_alias :cls, "clear"
+        set_alias :gs, "git status"
+        set_alias :ga, "git add"
+        set_alias :gaa, "git add --all"
+        set_alias :gcm, "git commit -m"
+        set_alias :gca, "git commit --amend"
+        set_alias :gcaa, "git commit --amend --all"
 
         oh_my_zsh do
-            enable true
+            enable
             theme "robbyrussell"
-            plugins %w[git python man]
+            plugins %w[git python man zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting]
         end
 
         shell_init <<~SHELL
@@ -49,9 +52,7 @@ config = Rbdots.configure do |config|
             PROMPT=' %{$fg[magenta]%}%0*%{$reset_color%} %{$fg[cyan]%}%0~%{$reset_color%} $(git_prompt_info)$ '
         SHELL
 
-        environment_variables({
-                                  "RUST_BACKTRACE" => "1"
-                              })
+        environment_variable :RUST_BACKTRACE, "1"
     end
 
     config.programs.git do
@@ -60,8 +61,6 @@ config = Rbdots.configure do |config|
         default_branch "main"
         pull_rebase true
 
-        set_option :credential_helper, "manager"
-        set_option :credential_store, "cache"
         set_option :github_username, "declspecl"
     end
 

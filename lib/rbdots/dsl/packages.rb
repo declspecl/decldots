@@ -11,7 +11,7 @@ module Rbdots
             attr_reader :packages
 
             sig { params(packages_hash: T::Hash[Symbol, T.untyped]).void }
-            def initialize(packages_hash)
+            def initialize(_packages_hash)
                 @packages = T.let({}, T::Hash[Symbol, PackageManagerConfiguration])
             end
 

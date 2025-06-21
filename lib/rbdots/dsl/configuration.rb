@@ -3,6 +3,7 @@
 
 require_relative "packages"
 require_relative "programs"
+require_relative "program_configuration/base"
 require_relative "dotfiles"
 
 module Rbdots
