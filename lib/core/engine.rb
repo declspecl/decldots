@@ -48,8 +48,7 @@ module Decldots
             changes = T.let({}, T::Hash[String, T.untyped])
 
             if config.package_managers.package_managers.any?
-                changes["packages"] = 
-                    diff_packages(config.package_managers.package_managers)
+                changes["packages"] = diff_packages(config.package_managers.package_managers)
             end
             changes["programs"] = diff_programs(config.programs.programs) if config.programs.programs.any?
             changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles
@@ -118,14 +117,9 @@ module Decldots
         def apply_dotfiles(dotfiles)
             return unless dotfiles
 
-            dotfiles.links.each do |link_config|
-                puts "Linking dotfile: #{link_config[:name]} (mutable: #{link_config[:mutable]})"
-                @dotfiles_manager.link_config(
-                    link_config[:name],
-                    link_config[:mutable],
-                    link_config[:source_directory],
-                    link_config[:target]
-                )
+            dotfiles.links.each do |link|
+                puts "Linking dotfile: #{link.name})"
+                @dotfiles_manager.link_config(link)
             end
         end
 
@@ -181,12 +175,8 @@ module Decldots
 
             return changes unless dotfiles
 
-            dotfiles.links.each do |link_config|
-                diff = @dotfiles_manager.diff_link(
-                    link_config[:name],
-                    mutable: link_config[:mutable],
-                    source_directory: Decldots.source_directory
-                )
+            dotfiles.links.each do |link|
+                diff = @dotfiles_manager.diff_link(link)
                 changes[:links] << diff if diff[:action] != :no_change
             end
 

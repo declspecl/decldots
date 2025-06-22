@@ -23,10 +23,12 @@ module Decldots
 
         sig { void }
         def initialize
-            @state_dir = T.let(File.expand_path("~/.decldots"), String)
+            require "xdg"
+
+            @state_dir = T.let(XDG::State.new.to_str, String)
             @state_file = T.let(File.join(state_dir, "state.json"), String)
             @checkpoints_dir = T.let(File.join(state_dir, "checkpoints"), String)
-            
+
             ensure_state_directory_exists
             @state = T.let(load_state, T::Hash[Symbol, T.untyped])
         end

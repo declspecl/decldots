@@ -54,9 +54,7 @@ module Decldots
             sig { void }
             def validate_programs!
                 @programs.programs.each do |program_name, program_config|
-                    unless Decldots.programs.key?(program_name)
-                        raise ValidationError, "Unknown program program: #{program_name}"
-                    end
+                    raise ValidationError, "Unknown program program: #{program_name}" unless Decldots.programs.key?(program_name)
 
                     program_config.validate!
                 end

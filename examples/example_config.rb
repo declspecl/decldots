@@ -59,15 +59,14 @@ config = Decldots.configure do |config|
     end
 
     config.dotfiles do
-        link "emacs", mutable: true
-        link "nvim", mutable: true
-
-        link "hypr", mutable: false
-        link "kitty", mutable: false
-        link "mako", mutable: false
-        link "wofi", mutable: false
-        link "waybar", mutable: false
-        link "wlogout", mutable: false
+        link "emacs", "~/.emacs.d"
+        link "nvim", "~/.config/nvim"
+        link "hypr", "~/.config/hypr"
+        link "kitty", "~/.config/kitty"
+        link "mako", "~/.config/mako"
+        link "wofi", "~/.config/wofi"
+        link "waybar", "~/.config/waybar"
+        link "wlogout", "~/.config/wlogout"
     end
 end
 

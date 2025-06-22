@@ -130,6 +130,7 @@ GEM
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
     webrick (1.9.1)
+    xdg (9.2.0)
     yard (0.9.37)
     yard-sorbet (0.9.0)
       sorbet-runtime
@@ -139,10 +140,10 @@ PLATFORMS
   arm64-darwin-24
 
 DEPENDENCIES
+  decldots!
   irb
   minitest (~> 5.0)
   rake (~> 13.0)
-  decldots!
   rspec (~> 3.0)
   rubocop (~> 1.21)
   rubocop-minitest (~> 0.38.1)
@@ -156,6 +157,7 @@ DEPENDENCIES
   sorbet-runtime
   tapioca
   webrick (~> 1.9)
+  xdg (~> 9.2)
 
 BUNDLED WITH
    2.6.7

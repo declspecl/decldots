@@ -19,3 +19,4 @@ gem "sorbet", "~> 0.5"
 gem "sorbet-runtime"
 gem "tapioca", require: false, group: %i[development test]
 gem "webrick", "~> 1.9"
+gem "xdg", "~> 9.2"

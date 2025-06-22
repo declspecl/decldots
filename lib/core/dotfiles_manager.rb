@@ -16,59 +16,32 @@ module Decldots
             @source_directory = source_directory
         end
 
-        sig do
-            params(
-                name: String,
-                target: String,
-                mutable: T::Boolean,
-                source_directory: T.nilable(String)
-            ).returns(T::Hash[Symbol, T.untyped])
-        end
-        def link_config(name, target, mutable, source_directory: nil)
-            proper_source_directory = source_directory || @source_directory
-            source_path = File.join(proper_source_directory, name)
+        sig { params(link: Link).returns(T::Hash[Symbol, T.untyped]) }
+        def link_config(link)
+            validate_link_operation!(link.from, link.to)
 
-            validate_link_operation!(source_path, target)
-
-            if mutable
-                create_mutable_link(
-                    source_path,
-                    target
-                )
+            if link.action == :link
+                create_link(link.from, link.to)
             else
-                create_immutable_copy(
-                    source_path,
-                    target
-                )
+                create_copy(link.from, link.to)
             end
 
             {
-                name: name,
-                source: source_path,
-                target: target,
-                type: mutable ? "mutable" : "immutable",
+                name: link.name,
+                source: link.from,
+                target: link.to,
+                type: link.action == :link ? "link" : "copy",
                 created_at: Time.now.iso8601
             }
         end
 
-        sig do
-            params(
-                name: String,
-                mutable: T::Boolean,
-                source_directory: T.nilable(String),
-                target: T.nilable(String)
-            ).returns(T::Hash[Symbol, T.untyped])
-        end
-        def diff_link(name, mutable: false, source_directory: nil, target: nil)
-            proper_source_directory = source_directory || @source_directory
-            source_path = File.join(proper_source_directory, name)
-            target_path = target || File.expand_path("~/.config/#{name}")
-
-            if File.exist?(target_path) || File.symlink?(target_path)
-                if mutable && File.symlink?(target_path) && File.readlink(target_path) == source_path
+        sig { params(link: Link).returns(T::Hash[Symbol, T.untyped]) }
+        def diff_link(link)
+            if File.exist?(link.to) || File.symlink?(link.to)
+                if link.action == :link && File.symlink?(link.to) && File.readlink(link.to) == link.from
                     { action: :no_change, reason: "Symlink already exists and points to correct location" }
-                elsif !mutable && File.exist?(target_path) && !File.symlink?(target_path)
-                    if files_identical?(source_path, target_path)
+                elsif link.action == :copy && File.exist?(link.to) && !File.symlink?(link.to)
+                    if files_identical?(link.from, link.to)
                         { action: :no_change, reason: "File already exists with correct content" }
                     else
                         { action: :update, reason: "File exists but content differs" }
@@ -81,114 +54,43 @@ module Decldots
             end
         end
 
-        sig { params(name: String, target: T.nilable(String), source_directory: T.nilable(String)).void }
-        def unlink_config(name, target: nil, source_directory: nil)
-            proper_source_directory = source_directory || @source_directory
-            target_path = target || File.expand_path("~/.config/#{name}")
+        sig { params(link: Link).void }
+        def unlink_config(link)
+            if File.exist?(link.to) || File.symlink?(link.to)
+                backup_existing_target(link.to)
 
-            if File.exist?(target_path) || File.symlink?(target_path)
-                backup_existing_target(target_path)
-
-                if File.symlink?(target_path)
-                    FileUtils.rm(target_path)
-                    puts "Removed symlink: #{target_path}"
+                if File.symlink?(link.to)
+                    FileUtils.rm(link.to)
+                    puts "Removed symlink: #{link.to}"
                 else
-                    FileUtils.rm_rf(target_path)
-                    puts "Removed file/directory: #{target_path}"
+                    FileUtils.rm_rf(link.to)
+                    puts "Removed file/directory: #{link.to}"
                 end
             else
-                puts "Target does not exist: #{target_path}"
+                puts "Target does not exist: #{link.to}"
             end
-        end
-
-        sig do
-            params(
-                template_path: String,
-                target_path: String,
-                variables: T::Hash[T.any(String, Symbol), T.untyped]
-            ).void
-        end
-        def copy_template(template_path, target_path, variables = {})
-            raise ConfigurationError, "Template file not found: #{template_path}" unless File.exist?(template_path)
-
-            template_content = File.read(template_path)
-
-            variables.each do |key, value|
-                template_content.gsub!("{{#{key}}}", value.to_s)
-            end
-
-            target_dir = File.dirname(target_path)
-            FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
-
-            backup_existing_target(target_path) if File.exist?(target_path)
-
-            File.write(target_path, template_content)
-            puts "Created file from template: #{target_path}"
-        end
-
-        sig { returns(T::Array[T::Hash[Symbol, T.untyped]]) }
-        def list_current_links
-            config_dir = File.expand_path("~/.config")
-            return [] unless Dir.exist?(config_dir)
-
-            links = []
-
-            Dir.entries(config_dir).each do |entry|
-                next if entry.start_with?(".")
-
-                entry_path = File.join(config_dir, entry)
-
-                if File.symlink?(entry_path)
-                    links << {
-                        name: entry,
-                        target: entry_path,
-                        source: File.readlink(entry_path),
-                        type: "mutable",
-                        is_symlink: true
-                    }
-                elsif File.exist?(entry_path)
-                    links << {
-                        name: entry,
-                        target: entry_path,
-                        type: "immutable",
-                        is_symlink: false
-                    }
-                end
-            end
-
-            links
         end
 
         private
 
-        sig do
-            params(
-                source_path: String,
-                target_path: String
-            ).void
-        end
-        def create_mutable_link(source_path, target_path)
+        sig { params(source_path: String, target_path: String).void }
+        def create_link(source_path, target_path)
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            backup_existing_target(target_path) if (File.exist?(target_path) || File.symlink?(target_path))
+            backup_existing_target(target_path) if File.exist?(target_path) || File.symlink?(target_path)
 
             FileUtils.ln_sf(source_path, target_path)
 
-            puts "Created mutable symlink: #{target_path} -> #{source_path}"
+            puts "Created link: #{source_path} -> #{target_path}"
         end
 
-        sig do
-            params(
-                source_path: String,
-                target_path: String
-            ).void
-        end
-        def create_immutable_copy(source_path, target_path)
+        sig { params(source_path: String, target_path: String).void }
+        def create_copy(source_path, target_path)
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            backup_existing_target(target_path) if (File.exist?(target_path) || File.symlink?(target_path))
+            backup_existing_target(target_path) if File.exist?(target_path) || File.symlink?(target_path)
 
             if File.directory?(source_path)
                 FileUtils.cp_r(source_path, target_path)
@@ -198,7 +100,7 @@ module Decldots
                 operation = "file"
             end
 
-            puts "Copied #{operation} (immutable): #{source_path} -> #{target_path}"
+            puts "Copied #{operation}: #{source_path} -> #{target_path}"
         end
 
         sig { params(source_path: String, target_path: String).void }
@@ -241,6 +143,30 @@ module Decldots
             return false if File.directory?(file1) || File.directory?(file2)
 
             File.read(file1) == File.read(file2)
+        end
+    end
+
+    class Link
+        extend T::Sig
+
+        sig { returns(String) }
+        attr_reader :name
+
+        sig { returns(Symbol) }
+        attr_reader :action
+
+        sig { returns(String) }
+        attr_reader :to
+
+        sig { returns(String) }
+        attr_reader :from
+
+        sig { params(name: String, action: Symbol, to: String, from: T.nilable(String)).void }
+        def initialize(name, action, to, from: nil)
+            @name = name
+            @action = action
+            @to = to
+            @from = T.let(from || File.join(Decldots.source_directory, name), String)
         end
     end
 end

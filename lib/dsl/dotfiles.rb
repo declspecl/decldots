@@ -7,62 +7,44 @@ module Decldots
         class Dotfiles
             extend T::Sig
 
-            sig { returns(T::Array[T::Hash[Symbol, T.untyped]]) }
+            sig { returns(T::Array[Link]) }
             attr_reader :links
 
             sig { void }
             def initialize
-                @links = T.let([], T::Array[T::Hash[Symbol, T.untyped]])
+                @links = T.let([], T::Array[Link])
             end
 
-            sig { params(name: String, mutable: T::Boolean, to: T.nilable(String)).void }
-            def link(name, mutable: false, to: nil)
-                to_path = to || File.expand_path("~/.config/#{name}")
-
-                @links << {
-                    name: name,
-                    mutable: mutable,
-                    to: to_path
-                }
+            sig { params(name: String, to: String, from: T.nilable(String)).void }
+            def link(name, to, from: nil)
+                @links << Link.new(name, :link, to, from: from)
             end
 
-            sig { params(from: String, to: String, backup: T::Boolean).void }
-            def copy(from, to, backup: true)
-                from_path = File.join(Decldots.source_directory, from)
-                to_path = File.expand_path(to)
-
-                @links << {
-                    name: File.basename(from),
-                    mutable: false,
-                    to: to_path,
-                    action: :copy,
-                    backup: backup
-                }
+            sig { params(name: String, to: String, from: T.nilable(String)).void }
+            def copy(name, to, from: nil)
+                @links << Link.new(name, :copy, to, from: from)
             end
 
-            sig { returns(T::Boolean) }
+            sig { void }
             def validate!
                 unless Dir.exist?(Decldots.source_directory)
                     raise Decldots::ValidationError, "Source directory does not exist: #{Decldots.source_directory}"
                 end
 
-                @links.each do |link_config|
-                    validate_link_config(link_config)
+                @links.each do |link|
+                    validate_link_config!(link)
                 end
-
-                true
             end
 
             private
 
-            sig { params(link_config: T::Hash[Symbol, T.untyped]).void }
-            def validate_link_config(link_config)
-                name = link_config[:name]
-                to = link_config[:to]
+            sig { params(link: Link).void }
+            def validate_link_config!(link)
+                name = link.name
+                to = link.to
+                link.from
 
                 raise Decldots::ValidationError, "Link name cannot be empty" if name.nil? || name.to_s.strip.empty?
-
-                raise Decldots::ValidationError, "Link must have both source and target paths" unless to
 
                 target_dir = File.dirname(to)
                 return if Dir.exist?(target_dir)
