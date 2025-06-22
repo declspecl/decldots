@@ -13,7 +13,7 @@ config = Decldots.configure do |config|
         home_directory "/Users/dec"
     end
 
-    config.packages.homebrew do
+    config.package_managers.homebrew do
         tap "homebrew/cask"
 
         install "git", "curl", "wget", "jq"

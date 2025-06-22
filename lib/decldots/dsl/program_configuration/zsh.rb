@@ -19,17 +19,17 @@ module Decldots
 
                 sig { params(enabled: T::Boolean).void }
                 def enable_completion(enabled: true)
-                    @options[:completion] = enabled
+                    @options[:enable_completion] = enabled
                 end
 
                 sig { params(enabled: T::Boolean).void }
                 def enable_autosuggestion(enabled: true)
-                    @options[:autosuggestion] = enabled
+                    @options[:enable_autosuggestion] = enabled
                 end
 
                 sig { params(enabled: T::Boolean).void }
                 def enable_syntax_highlighting(enabled: true)
-                    @options[:syntax_highlighting] = enabled
+                    @options[:enable_syntax_highlighting] = enabled
                 end
 
                 sig { params(name: Symbol, command: String).void }

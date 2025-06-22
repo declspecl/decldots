@@ -7,6 +7,9 @@ module Decldots
             # Base configuration class for all program configurations
             class BaseProgramConfiguration
                 extend T::Sig
+                extend T::Helpers
+
+                abstract!
 
                 sig { returns(T::Hash[Symbol, T.untyped]) }
                 attr_reader :options

@@ -3,6 +3,7 @@
 
 require_relative "program_configuration/base"
 require_relative "program_configuration/zsh"
+require_relative "program_configuration/bash"
 require_relative "program_configuration/git"
 
 module Decldots
@@ -24,6 +25,13 @@ module Decldots
                 config = ProgramConfigs::ZshConfiguration.new
                 config.instance_eval(&block)
                 @programs[:zsh] = config
+            end
+
+            sig { params(block: T.proc.bind(ProgramConfigs::BashConfiguration).void).void }
+            def bash(&block)
+                config = ProgramConfigs::BashConfiguration.new
+                config.instance_eval(&block)
+                @programs[:bash] = config
             end
 
             sig { params(block: T.proc.bind(ProgramConfigs::GitConfiguration).void).void }

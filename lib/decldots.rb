@@ -142,10 +142,11 @@ module Decldots
 end
 
 require_relative "decldots/package_managers/homebrew"
-require_relative "decldots/programs/shell"
+require_relative "decldots/programs/zsh"
+require_relative "decldots/programs/bash"
 require_relative "decldots/programs/git"
 
 Decldots.register_package_manager(:homebrew, Decldots::PackageManagers::Homebrew)
-Decldots.register_program(:zsh, Decldots::Programs::Shell)
-Decldots.register_program(:bash, Decldots::Programs::Shell)
+Decldots.register_program(:zsh, Decldots::Programs::Zsh)
+Decldots.register_program(:bash, Decldots::Programs::Bash)
 Decldots.register_program(:git, Decldots::Programs::Git)

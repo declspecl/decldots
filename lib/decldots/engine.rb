@@ -28,7 +28,7 @@ module Decldots
             checkpoint = @state_manager.create_checkpoint
 
             begin
-                apply_packages(config.packages.packages) if config.packages.packages.any?
+                apply_packages(config.package_managers.packages) if config.package_managers.packages.any?
                 apply_programs(config.programs.programs) if config.programs.programs.any?
                 apply_dotfiles(config.dotfiles_config) if config.dotfiles_config
 
@@ -47,7 +47,10 @@ module Decldots
 
             changes = T.let({}, T::Hash[String, T.untyped])
 
-            changes["packages"] = diff_packages(config.packages.packages) if config.packages.packages.any?
+            if config.package_managers.packages.any?
+                changes["packages"] = 
+                    diff_packages(config.package_managers.packages)
+            end
             changes["programs"] = diff_programs(config.programs.programs) if config.programs.programs.any?
             changes["dotfiles"] = diff_dotfiles(config.dotfiles_config) if config.dotfiles_config
 
@@ -71,16 +74,17 @@ module Decldots
             true
         end
 
-        sig { params(packages: T::Hash[Symbol, Decldots::DSL::PackageManagerConfiguration]).void }
+        sig do
+            params(packages: T::Hash[Symbol, 
+                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]).void
+        end
         def apply_packages(packages)
             packages.each do |package_manager_name, package_config|
                 if Decldots.dry_run?
                     puts "Would configure #{package_manager_name} packages:"
-                    puts "  Taps: #{package_config.taps.join(", ")}" if package_config.taps.any?
                     if package_config.packages_to_install.any?
                         puts "  Install: #{package_config.packages_to_install.join(", ")}"
                     end
-                    puts "  Install casks: #{package_config.casks.join(", ")}" if package_config.casks.any?
                     if package_config.packages_to_uninstall.any?
                         puts "  Uninstall: #{package_config.packages_to_uninstall.join(", ")}"
                     end
@@ -92,8 +96,10 @@ module Decldots
 
                 if package_manager_name == :homebrew
                     homebrew_manager = T.cast(manager, Decldots::PackageManagers::Homebrew)
-                    homebrew_manager.add_taps(package_config.taps) if package_config.taps.any?
-                    homebrew_manager.install_casks(package_config.casks) if package_config.casks.any?
+                    homebrew_config = T.cast(package_config, 
+                                             Decldots::DSL::PackageManagerConfigs::HomebrewConfiguration)
+                    homebrew_manager.add_taps(homebrew_config.taps) if homebrew_config.taps.any?
+                    homebrew_manager.install_casks(homebrew_config.casks) if homebrew_config.casks.any?
                 end
 
                 if package_config.packages_to_install.any?
@@ -135,7 +141,8 @@ module Decldots
 
         sig do
             params(packages: T::Hash[Symbol, 
-                                     Decldots::DSL::PackageManagerConfiguration]).returns(T::Hash[Symbol, T.untyped])
+                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]).returns(T::Hash[Symbol, 
+                                                                                                                             T.untyped])
         end
         def diff_packages(packages)
             changes = T.let({}, T::Hash[Symbol, T.untyped])

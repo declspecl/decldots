@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "packages"
+require_relative "package_managers"
 require_relative "programs"
 require_relative "program_configuration/base"
 require_relative "dotfiles"
@@ -13,9 +13,9 @@ module Decldots
             extend T::Sig
 
             sig { returns(T::Hash[Symbol, T.untyped]) }
-            attr_reader :packages_config
+            attr_reader :package_managers_config
 
-            sig { returns(T::Hash[Symbol, T.untyped]) }
+            sig { returns(T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration]) }
             attr_reader :programs_config
 
             sig { returns(Decldots::DSL::UserConfiguration) }
@@ -26,12 +26,12 @@ module Decldots
 
             sig { void }
             def initialize
-                @packages_config = T.let({}, T::Hash[Symbol, T.untyped])
-                @programs_config = T.let({}, T::Hash[Symbol, T.untyped])
+                @package_managers_config = T.let({}, T::Hash[Symbol, T.untyped])
+                @programs_config = T.let({}, T::Hash[Symbol, ProgramConfigs::BaseProgramConfiguration])
                 @dotfiles = T.let(nil, T.nilable(Decldots::DSL::Dotfiles))
                 @dotfiles_config = T.let(nil, T.nilable(Decldots::DSL::Dotfiles))
                 @user_config = T.let(UserConfiguration.new, Decldots::DSL::UserConfiguration)
-                @packages = T.let(nil, T.nilable(Decldots::DSL::PackageManagement))
+                @package_managers = T.let(nil, T.nilable(Decldots::DSL::PackageManagers))
                 @programs = T.let(nil, T.nilable(Decldots::DSL::Programs))
             end
 
@@ -42,9 +42,9 @@ module Decldots
                 @user_config = user_config_obj
             end
 
-            sig { returns(Decldots::DSL::PackageManagement) }
-            def packages
-                @packages ||= Decldots::DSL::PackageManagement.new
+            sig { returns(Decldots::DSL::PackageManagers) }
+            def package_managers
+                @package_managers ||= Decldots::DSL::PackageManagers.new
             end
 
             sig { returns(Decldots::DSL::Programs) }
@@ -62,7 +62,7 @@ module Decldots
 
             sig { returns(T::Boolean) }
             def validate!
-                validate_packages!
+                validate_package_managers!
                 validate_programs!
                 validate_dotfiles!
                 true
@@ -71,10 +71,10 @@ module Decldots
             private
 
             sig { void }
-            def validate_packages!
-                return unless @packages
+            def validate_package_managers!
+                return unless @package_managers
 
-                @packages.packages.each do |package_manager_name, package_config|
+                @package_managers.packages.each do |package_manager_name, package_config|
                     unless Decldots.package_managers.key?(package_manager_name)
                         raise ValidationError, 
                               "Unknown package manager: #{package_manager_name}"
