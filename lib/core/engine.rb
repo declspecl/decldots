@@ -21,23 +21,21 @@ module Decldots
             @dotfiles_manager = T.let(Decldots::DotfilesManager.new(source_directory), Decldots::DotfilesManager)
         end
 
-        sig { params(config: Decldots::DSL::Configuration).returns(T::Boolean) }
-        def apply_configuration(config)
+        sig { params(config: Decldots::DSL::Configuration).void }
+        def apply_configuration!(config)
             validate_configuration!(config)
 
             checkpoint = @state_manager.create_checkpoint
 
             begin
-                apply_packages(config.package_managers.package_managers) if config.package_managers.package_managers.any?
+                apply_package_managers(config.package_managers.package_managers) if config.package_managers.package_managers.any?
                 apply_programs(config.programs.programs) if config.programs.programs.any?
                 apply_dotfiles(config.dotfiles) if config.dotfiles
 
                 @state_manager.save_state
-                true
             rescue StandardError => e
                 puts "Error applying configuration: #{e.message}"
-                rollback_to_checkpoint(checkpoint)
-                false
+                @state_manager.rollback_to!(checkpoint)
             end
         end
 
@@ -47,21 +45,11 @@ module Decldots
 
             changes = T.let({}, T::Hash[String, T.untyped])
 
-            if config.package_managers.package_managers.any?
-                changes["packages"] = diff_packages(config.package_managers.package_managers)
-            end
-            changes["programs"] = diff_programs(config.programs.programs) if config.programs.programs.any?
-            changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles
+            changes["package_managers"] = diff_package_managers(config.package_managers.package_managers)
+            changes["programs"] = diff_programs(config.programs.programs)
+            changes["dotfiles"] = diff_dotfiles(config.dotfiles)
 
             changes
-        end
-
-        sig { params(checkpoint: String).returns(T::Boolean) }
-        def rollback_to_checkpoint(checkpoint)
-            @state_manager.rollback_to(checkpoint)
-        rescue StandardError => e
-            puts "Failed to rollback: #{e.message}"
-            false
         end
 
         private
@@ -71,21 +59,18 @@ module Decldots
             raise ValidationError, "Configuration cannot be nil" if config.nil?
         end
 
-        sig do
-            params(packages: T::Hash[Symbol, 
-                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]
-                  ).void
-        end
-        def apply_packages(packages)
-            packages.each do |package_manager_name, package_config|
+        sig { params(package_managers: T::Hash[Symbol, Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]).void }
+        def apply_package_managers(package_managers)
+            package_managers.each do |package_manager_name, package_config|
                 manager_class = Decldots.get_package_manager(package_manager_name)
                 manager = manager_class.new
 
                 if package_manager_name == :homebrew
                     homebrew_manager = T.cast(manager, Decldots::PackageManagers::Homebrew)
-                    homebrew_config = T.cast(package_config, 
-                                             Decldots::DSL::PackageManagerConfigs::HomebrewConfiguration
-                                            )
+                    homebrew_config = T.cast(
+                        package_config, 
+                        Decldots::DSL::PackageManagerConfigs::HomebrewConfiguration
+                    )
                     homebrew_manager.add_taps(homebrew_config.taps) if homebrew_config.taps.any?
                     homebrew_manager.install_casks(homebrew_config.casks) if homebrew_config.casks.any?
                 end
@@ -113,10 +98,8 @@ module Decldots
             end
         end
 
-        sig { params(dotfiles: T.nilable(Decldots::DSL::Dotfiles)).void }
+        sig { params(dotfiles: Decldots::DSL::Dotfiles).void }
         def apply_dotfiles(dotfiles)
-            return unless dotfiles
-
             dotfiles.links.each do |link|
                 puts "Linking dotfile: #{link.name})"
                 @dotfiles_manager.link_config(link)
@@ -124,16 +107,17 @@ module Decldots
         end
 
         sig do
-            params(packages: T::Hash[Symbol, 
-                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]
-                  ).returns(T::Hash[Symbol, 
-                                    T.untyped]
-                           )
+            params(
+                package_managers: T::Hash[
+                    Symbol,
+                    Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration
+                ]
+            ).returns(T::Hash[Symbol, T.untyped])
         end
-        def diff_packages(packages)
+        def diff_package_managers(package_managers)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
 
-            packages.each do |package_manager_name, package_config|
+            package_managers.each do |package_manager_name, package_config|
                 manager_class = Decldots.get_package_manager(package_manager_name)
                 manager = manager_class.new
 
@@ -150,11 +134,7 @@ module Decldots
         end
 
         sig do
-            params(programs: T::Hash[Symbol, 
-                                     Decldots::DSL::ProgramConfigs::BaseProgramConfiguration]
-                  ).returns(T::Hash[Symbol, 
-                                    T.untyped]
-                           )
+            params(programs: T::Hash[Symbol, Decldots::DSL::ProgramConfigs::BaseProgramConfiguration]).returns(T::Hash[Symbol, T.untyped])
         end
         def diff_programs(programs)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
@@ -169,11 +149,9 @@ module Decldots
             changes
         end
 
-        sig { params(dotfiles: T.nilable(Decldots::DSL::Dotfiles)).returns(T::Hash[Symbol, T.untyped]) }
+        sig { params(dotfiles: Decldots::DSL::Dotfiles).returns(T::Hash[Symbol, T.untyped]) }
         def diff_dotfiles(dotfiles)
             changes = T.let({ links: [] }, T::Hash[Symbol, T.untyped])
-
-            return changes unless dotfiles
 
             dotfiles.links.each do |link|
                 diff = @dotfiles_manager.diff_link(link)

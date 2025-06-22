@@ -51,9 +51,9 @@ module Decldots
             config
         end
 
-        sig { params(config: Decldots::DSL::Configuration).returns(T::Boolean) }
-        def apply(config)
-            @engine.apply_configuration(config)
+        sig { params(config: Decldots::DSL::Configuration).void }
+        def apply!(config)
+            @engine.apply_configuration!(config)
         end
 
         sig { params(config: Decldots::DSL::Configuration).returns(T::Hash[String, T.untyped]) }

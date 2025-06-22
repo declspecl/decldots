@@ -71,7 +71,7 @@ config = Decldots.configure do |config|
 end
 
 puts "=== Applying Configuration in Dry Run Mode ==="
-Decldots.apply(config)
+Decldots.apply!(config)
 
 puts "\n=== Configuration Diff ==="
 require "pp"
