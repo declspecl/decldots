@@ -88,7 +88,8 @@ module Decldots
             @state[:dotfiles] ||= {}
             @state[:dotfiles][dotfile_name] = link_info.merge({
                                                                   "last_updated" => Time.now.iso8601
-                                                              })
+                                                              }
+                                                             )
         end
 
         sig { params(adapter_name: Symbol).returns(T::Array[String]) }
@@ -111,9 +112,9 @@ module Decldots
             return [] unless Dir.exist?(checkpoints_dir)
 
             Dir.entries(checkpoints_dir)
-               .select { |file| file.end_with?(".json") }
-               .map { |file| File.basename(file, ".json") }
-               .sort.reverse
+                .select { |file| file.end_with?(".json") }
+                .map { |file| File.basename(file, ".json") }
+                .sort.reverse
         end
 
         sig { params(keep_count: Integer).void }

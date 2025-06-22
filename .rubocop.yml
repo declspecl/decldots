@@ -7,6 +7,27 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_first_argument
+
+Layout/FirstArgumentIndentation:
+  EnforcedStyle: consistent
+
+Layout/ParameterAlignment:
+  EnforcedStyle: with_first_parameter
+
+Layout/MultilineMethodCallBraceLayout:
+  EnforcedStyle: new_line
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: true
+
+Layout/MultilineMethodArgumentLineBreaks:
+  Enabled: true
+
 Layout/LineLength:
   Max: 140
 
@@ -15,6 +36,13 @@ Layout/IndentationWidth:
 
 Layout/IndentationStyle:
   EnforcedStyle: spaces
+
+Layout/IndentationConsistency:
+  Enabled: true
+
+Layout/HashAlignment:
+  EnforcedHashRocketStyle: key
+  EnforcedColonStyle: key
 
 Layout/TrailingWhitespace:
   Enabled: false

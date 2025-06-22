@@ -76,7 +76,8 @@ module Decldots
 
         sig do
             params(packages: T::Hash[Symbol, 
-                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]).void
+                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]
+                  ).void
         end
         def apply_packages(packages)
             packages.each do |package_manager_name, package_config|
@@ -93,7 +94,8 @@ module Decldots
                 if package_manager_name == :homebrew
                     homebrew_manager = T.cast(manager, Decldots::PackageManagers::Homebrew)
                     homebrew_config = T.cast(package_config, 
-                                             Decldots::DSL::PackageManagerConfigs::HomebrewConfiguration)
+                                             Decldots::DSL::PackageManagerConfigs::HomebrewConfiguration
+                                            )
                     homebrew_manager.add_taps(homebrew_config.taps) if homebrew_config.taps.any?
                     homebrew_manager.install_casks(homebrew_config.casks) if homebrew_config.casks.any?
                 end
@@ -129,16 +131,19 @@ module Decldots
                 puts "Linking dotfile: #{link_config[:name]} (mutable: #{link_config[:mutable]})"
                 @dotfiles_manager.link_config(
                     link_config[:name],
-                    mutable: link_config[:mutable],
-                    source_directory: dotfiles.source_directory
+                    link_config[:mutable],
+                    link_config[:source_directory],
+                    link_config[:target]
                 )
             end
         end
 
         sig do
             params(packages: T::Hash[Symbol, 
-                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]).returns(T::Hash[Symbol, 
-                                                                                                                             T.untyped])
+                                     Decldots::DSL::PackageManagerConfigs::BasePackageManagerConfiguration]
+                  ).returns(T::Hash[Symbol, 
+                                    T.untyped]
+                           )
         end
         def diff_packages(packages)
             changes = T.let({}, T::Hash[Symbol, T.untyped])
@@ -161,8 +166,10 @@ module Decldots
 
         sig do
             params(programs: T::Hash[Symbol, 
-                                     Decldots::DSL::ProgramConfigs::BaseProgramConfiguration]).returns(T::Hash[Symbol, 
-                                                                                                               T.untyped])
+                                     Decldots::DSL::ProgramConfigs::BaseProgramConfiguration]
+                  ).returns(T::Hash[Symbol, 
+                                    T.untyped]
+                           )
         end
         def diff_programs(programs)
             changes = T.let({}, T::Hash[Symbol, T.untyped])

@@ -11,35 +11,39 @@ module Decldots
         sig do
             params(
                 name: String,
-                mutable: T::Boolean,
-                source_directory: T.nilable(String),
-                target: T.nilable(String)
+                source_directory: String,
+                target: String,
+                mutable: T::Boolean
             ).returns(T::Hash[Symbol, T.untyped])
         end
-        def link_config(name, mutable: false, source_directory: nil, target: nil)
-            source_directory ||= File.expand_path("~/.decldots/dotfiles")
+        def link_config(name, source_directory, target, mutable)
             source_path = File.join(source_directory, name)
-            target_path = target || File.expand_path("~/.config/#{name}")
 
             actual_source_path = Decldots.dry_run_path(source_path)
-            actual_target_path = Decldots.dry_run_path(target_path)
+            actual_target_path = Decldots.dry_run_path(target)
 
             create_dummy_source_file(actual_source_path, name) if Decldots.dry_run? && !File.exist?(actual_source_path)
 
             validate_link_operation(actual_source_path, actual_target_path)
 
             if mutable
-                create_mutable_link(actual_source_path, actual_target_path, original_source: source_path,
-                                                                            original_target: target_path)
+                create_mutable_link(actual_source_path, 
+                                    actual_target_path, 
+                                    original_source: source_path,
+                                    original_target: target
+                                   )
             else
-                create_immutable_copy(actual_source_path, actual_target_path, original_source: source_path,
-                                                                              original_target: target_path)
+                create_immutable_copy(actual_source_path, 
+                                      actual_target_path, 
+                                      original_source: source_path,
+                                      original_target: target
+                                     )
             end
 
             {
                 name: name,
                 source: source_path,
-                target: target_path,
+                target: target,
                 type: mutable ? "mutable" : "immutable",
                 created_at: Time.now.iso8601
             }
