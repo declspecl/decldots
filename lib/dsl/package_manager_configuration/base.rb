@@ -33,23 +33,18 @@ module Decldots
                     @packages_to_uninstall.concat(Array(packages).flatten)
                 end
 
-                # Abstract method that must be implemented by subclasses
-                sig { abstract.returns(T::Boolean) }
+                sig { abstract.void }
                 def validate!; end
 
                 protected
 
-                # Common validation helper for package names
                 sig { params(packages: T::Array[String]).void }
                 def validate_package_names(packages)
                     packages.each do |package|
-                        if package.strip.empty?
-                            raise ValidationError, "Package names must be non-empty strings, got: #{package.inspect}"
-                        end
+                        raise ValidationError, "Package names must be non-empty strings, got: #{package.inspect}" if package.strip.empty?
                     end
                 end
 
-                # Template method for basic validation that subclasses can extend
                 sig { returns(T::Boolean) }
                 def validate_basic_requirements!
                     if @packages_to_install.empty? && @packages_to_uninstall.empty?

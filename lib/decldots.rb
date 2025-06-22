@@ -3,7 +3,7 @@
 
 require "fileutils"
 require "sorbet-runtime"
-require_relative "decldots/version"
+require_relative "version"
 
 # Main namespace for the Decldots declarative dotfile management framework
 module Decldots
@@ -14,10 +14,10 @@ module Decldots
     class ValidationError < Error; end
 end
 
-require_relative "decldots/package_managers/base"
-require_relative "decldots/programs/base"
-require_relative "decldots/engine"
-require_relative "decldots/dsl/configuration"
+require_relative "core/package_managers/base"
+require_relative "core/programs/base"
+require_relative "core/engine"
+require_relative "dsl/configuration"
 
 module Decldots
     @package_managers = T.let({}, T::Hash[Symbol, T.class_of(Decldots::PackageManagers::Base)])
@@ -141,10 +141,10 @@ module Decldots
     end
 end
 
-require_relative "decldots/package_managers/homebrew"
-require_relative "decldots/programs/zsh"
-require_relative "decldots/programs/bash"
-require_relative "decldots/programs/git"
+require_relative "core/package_managers/homebrew"
+require_relative "core/programs/zsh"
+require_relative "core/programs/bash"
+require_relative "core/programs/git"
 
 Decldots.register_package_manager(:homebrew, Decldots::PackageManagers::Homebrew)
 Decldots.register_program(:zsh, Decldots::Programs::Zsh)

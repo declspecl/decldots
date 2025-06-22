@@ -10,18 +10,18 @@ module Decldots
             extend T::Sig
 
             sig { returns(T::Hash[Symbol, PackageManagerConfigs::BasePackageManagerConfiguration]) }
-            attr_reader :packages
+            attr_reader :package_managers
 
             sig { void }
             def initialize
-                @packages = T.let({}, T::Hash[Symbol, PackageManagerConfigs::BasePackageManagerConfiguration])
+                @package_managers = T.let({}, T::Hash[Symbol, PackageManagerConfigs::BasePackageManagerConfiguration])
             end
 
-            sig { params(block: T.proc.bind(PackageManagerConfigs::HomebrewConfiguration).void).void.checked(:never) }
+            sig { params(block: T.proc.bind(PackageManagerConfigs::HomebrewConfiguration).void).void }
             def homebrew(&block)
                 config = PackageManagerConfigs::HomebrewConfiguration.new
                 config.instance_eval(&block)
-                @packages[:homebrew] = config
+                @package_managers[:homebrew] = config
             end
         end
     end

@@ -29,6 +29,13 @@ module Decldots
                 def pull_rebase(enabled = true)
                     @options[:pull_rebase] = enabled
                 end
+
+                sig { override.void }
+                def validate!
+                    return if @options.any?
+
+                    raise ValidationError, "Git configuration must specify at least one option"
+                end
             end
         end
     end

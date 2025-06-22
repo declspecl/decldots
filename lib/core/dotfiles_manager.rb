@@ -166,9 +166,7 @@ module Decldots
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
-                backup_existing_target(target_path)
-            end
+            backup_existing_target(target_path) if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
 
             FileUtils.ln_sf(source_path, target_path)
 
@@ -191,9 +189,7 @@ module Decldots
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
-                backup_existing_target(target_path)
-            end
+            backup_existing_target(target_path) if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
 
             if File.directory?(source_path)
                 FileUtils.cp_r(source_path, target_path)

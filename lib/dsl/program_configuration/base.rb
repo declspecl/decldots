@@ -24,10 +24,8 @@ module Decldots
                     @options[key] = value
                 end
 
-                sig { returns(T::Boolean) }
-                def validate!
-                    true
-                end
+                sig { abstract.void }
+                def validate!; end
 
                 sig { returns(T::Hash[Symbol, T.untyped]) }
                 def to_hash

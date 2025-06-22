@@ -56,9 +56,7 @@ module Decldots
 
                 config_parts.concat(generate_bash_options(options))
 
-                if options[:environment_variables]
-                    config_parts.concat(generate_environment_variables(options[:environment_variables]))
-                end
+                config_parts.concat(generate_environment_variables(options[:environment_variables])) if options[:environment_variables]
 
                 config_parts.concat(generate_aliases(options[:aliases])) if options[:aliases]
 
@@ -115,7 +113,7 @@ module Decldots
             end
 
             sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
-            def generate_bash_features(options)
+            def generate_bash_features(_options)
                 lines = []
 
                 lines << "# Bash-specific features"

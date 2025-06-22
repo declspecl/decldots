@@ -63,9 +63,7 @@ module Decldots
 
                 config_parts.concat(generate_zsh_options(options))
 
-                if options[:environment_variables]
-                    config_parts.concat(generate_environment_variables(options[:environment_variables]))
-                end
+                config_parts.concat(generate_environment_variables(options[:environment_variables])) if options[:environment_variables]
 
                 config_parts.concat(generate_aliases(options[:aliases])) if options[:aliases]
 
@@ -166,8 +164,8 @@ module Decldots
                 lines
             end
 
-            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
-            def generate_zsh_features(options)
+            sig { params(_options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
+            def generate_zsh_features(_options)
                 lines = []
 
                 lines << "# Zsh-specific features"

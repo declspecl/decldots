@@ -20,13 +20,9 @@ module Decldots
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
             def validate_options(options)
-                if options[:user_name] && !options[:user_name].is_a?(String)
-                    raise ValidationError, "Git user name must be a string"
-                end
+                raise ValidationError, "Git user name must be a string" if options[:user_name] && !options[:user_name].is_a?(String)
 
-                if options[:user_email] && !options[:user_email].is_a?(String)
-                    raise ValidationError, "Git user email must be a string"
-                end
+                raise ValidationError, "Git user email must be a string" if options[:user_email] && !options[:user_email].is_a?(String)
 
                 true
             end

@@ -28,9 +28,9 @@ module Decldots
             checkpoint = @state_manager.create_checkpoint
 
             begin
-                apply_packages(config.package_managers.packages) if config.package_managers.packages.any?
+                apply_packages(config.package_managers.package_managers) if config.package_managers.package_managers.any?
                 apply_programs(config.programs.programs) if config.programs.programs.any?
-                apply_dotfiles(config.dotfiles_config) if config.dotfiles_config
+                apply_dotfiles(config.dotfiles) if config.dotfiles
 
                 @state_manager.save_state
                 true
@@ -47,12 +47,12 @@ module Decldots
 
             changes = T.let({}, T::Hash[String, T.untyped])
 
-            if config.package_managers.packages.any?
+            if config.package_managers.package_managers.any?
                 changes["packages"] = 
-                    diff_packages(config.package_managers.packages)
+                    diff_packages(config.package_managers.package_managers)
             end
             changes["programs"] = diff_programs(config.programs.programs) if config.programs.programs.any?
-            changes["dotfiles"] = diff_dotfiles(config.dotfiles_config) if config.dotfiles_config
+            changes["dotfiles"] = diff_dotfiles(config.dotfiles) if config.dotfiles
 
             changes
         end
@@ -82,12 +82,8 @@ module Decldots
             packages.each do |package_manager_name, package_config|
                 if Decldots.dry_run?
                     puts "Would configure #{package_manager_name} packages:"
-                    if package_config.packages_to_install.any?
-                        puts "  Install: #{package_config.packages_to_install.join(", ")}"
-                    end
-                    if package_config.packages_to_uninstall.any?
-                        puts "  Uninstall: #{package_config.packages_to_uninstall.join(", ")}"
-                    end
+                    puts "  Install: #{package_config.packages_to_install.join(", ")}" if package_config.packages_to_install.any?
+                    puts "  Uninstall: #{package_config.packages_to_uninstall.join(", ")}" if package_config.packages_to_uninstall.any?
                     next
                 end
 

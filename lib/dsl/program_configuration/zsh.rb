@@ -62,6 +62,13 @@ module Decldots
                         environment_variables: @environment_variables
                     }
                 end
+
+                sig { override.void }
+                def validate!
+                    return if @aliases.any? || @environment_variables.any?
+
+                    raise ValidationError, "Zsh configuration must specify at least one alias or environment variable"
+                end
             end
 
             class OhMyZshConfiguration

@@ -33,20 +33,16 @@ module Decldots
                     @casks.concat(Array(casks).flatten)
                 end
 
-                sig { override.returns(T::Boolean) }
+                sig { override.void }
                 def validate!
-                    # Use base class validation but extend it for casks
                     if @packages_to_install.empty? && @packages_to_uninstall.empty? && @casks.empty?
-                        raise ValidationError, 
-                              "Package configuration must specify at least one package to install or uninstall"
+                        raise ValidationError, "Homebrew configuration must specify at least one package to install or uninstall"
                     end
 
                     validate_package_names(@packages_to_install)
                     validate_package_names(@packages_to_uninstall)
                     validate_package_names(@casks)
                     validate_tap_names(@taps)
-
-                    true
                 end
 
                 private

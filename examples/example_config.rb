@@ -7,12 +7,6 @@ require_relative "../lib/decldots"
 Decldots.enable_dry_run
 
 config = Decldots.configure do |config|
-    config.user do
-        name "dec"
-        email "gavind2559@gmail.com"
-        home_directory "/Users/dec"
-    end
-
     config.package_managers.homebrew do
         tap "homebrew/cask"
 
