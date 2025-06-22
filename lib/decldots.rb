@@ -87,8 +87,3 @@ require_relative "core/package_managers/homebrew"
 require_relative "core/programs/zsh"
 require_relative "core/programs/bash"
 require_relative "core/programs/git"
-
-Decldots.register_package_manager(:homebrew, Decldots::PackageManagers::Homebrew)
-Decldots.register_program(:zsh, Decldots::Programs::Zsh)
-Decldots.register_program(:bash, Decldots::Programs::Bash)
-Decldots.register_program(:git, Decldots::Programs::Git)

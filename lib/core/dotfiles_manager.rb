@@ -28,7 +28,7 @@ module Decldots
             proper_source_directory = source_directory || @source_directory
             source_path = File.join(proper_source_directory, name)
 
-            validate_link_operation(source_path, target)
+            validate_link_operation!(source_path, target)
 
             if mutable
                 create_mutable_link(
@@ -202,7 +202,7 @@ module Decldots
         end
 
         sig { params(source_path: String, target_path: String).void }
-        def validate_link_operation(source_path, target_path)
+        def validate_link_operation!(source_path, target_path)
             unless File.exist?(source_path) || File.directory?(source_path)
                 raise ConfigurationError, "Source path does not exist: #{source_path}"
             end

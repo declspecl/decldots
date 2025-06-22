@@ -25,6 +25,7 @@ module Decldots
                 config = ProgramConfigs::ZshConfiguration.new
                 config.instance_eval(&block)
                 @programs[:zsh] = config
+                Decldots.register_program(:zsh, Decldots::Programs::Zsh)
             end
 
             sig { params(block: T.proc.bind(ProgramConfigs::BashConfiguration).void).void }
@@ -32,6 +33,7 @@ module Decldots
                 config = ProgramConfigs::BashConfiguration.new
                 config.instance_eval(&block)
                 @programs[:bash] = config
+                Decldots.register_program(:bash, Decldots::Programs::Bash)
             end
 
             sig { params(block: T.proc.bind(ProgramConfigs::GitConfiguration).void).void }
@@ -39,6 +41,7 @@ module Decldots
                 config = ProgramConfigs::GitConfiguration.new
                 config.instance_eval(&block)
                 @programs[:git] = config
+                Decldots.register_program(:git, Decldots::Programs::Git)
             end
         end
     end

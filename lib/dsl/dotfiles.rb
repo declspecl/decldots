@@ -13,81 +13,37 @@ module Decldots
             sig { void }
             def initialize
                 @links = T.let([], T::Array[T::Hash[Symbol, T.untyped]])
-                @source_directory = T.let(File.expand_path("~/.decldots/dotfiles"), String)
             end
 
-            sig { params(directory: String).void }
-            def set_source_directory(directory)
-                @source_directory = File.expand_path(directory)
-            end
-
-            sig { params(directory: T.nilable(String)).returns(String) }
-            def source_directory(directory = nil)
-                set_source_directory(directory) if directory
-                @source_directory
-            end
-
-            sig { params(name: String, mutable: T::Boolean, target: T.nilable(String)).void }
-            def link(name, mutable: false, target: nil)
-                target_path = target || File.expand_path("~/.config/#{name}")
+            sig { params(name: String, mutable: T::Boolean, to: T.nilable(String)).void }
+            def link(name, mutable: false, to: nil)
+                to_path = to || File.expand_path("~/.config/#{name}")
 
                 @links << {
                     name: name,
                     mutable: mutable,
-                    target: target_path,
-                    source: File.join(@source_directory, name)
+                    to: to_path
                 }
             end
 
-            sig { params(names: T::Array[String], mutable: T::Boolean).void }
-            def link_multiple(names, mutable: false)
-                names.each { |name| link(name, mutable: mutable) }
-            end
-
-            sig { params(name: String, target: T.nilable(String)).void }
-            def link_mutable(name, target: nil)
-                link(name, mutable: true, target: target)
-            end
-
-            sig { params(name: String, target: T.nilable(String)).void }
-            def link_immutable(name, target: nil)
-                link(name, mutable: false, target: target)
-            end
-
-            sig { params(source: String, target: String, backup: T::Boolean).void }
-            def copy(source, target, backup: true)
-                source_path = File.join(@source_directory, source)
-                target_path = File.expand_path(target)
+            sig { params(from: String, to: String, backup: T::Boolean).void }
+            def copy(from, to, backup: true)
+                from_path = File.join(Decldots.source_directory, from)
+                to_path = File.expand_path(to)
 
                 @links << {
-                    name: File.basename(source),
+                    name: File.basename(from),
                     mutable: false,
-                    target: target_path,
-                    source: source_path,
+                    to: to_path,
                     action: :copy,
                     backup: backup
                 }
             end
 
-            sig { params(template: String, target: String, variables: T::Hash[T.any(String, Symbol), T.untyped]).void }
-            def template(template, target, variables = {})
-                template_path = File.join(@source_directory, "templates", template)
-                target_path = File.expand_path(target)
-
-                @links << {
-                    name: File.basename(template, ".*"),
-                    mutable: false,
-                    target: target_path,
-                    source: template_path,
-                    action: :template,
-                    variables: variables
-                }
-            end
-
             sig { returns(T::Boolean) }
             def validate!
-                unless Dir.exist?(@source_directory)
-                    raise Decldots::ValidationError, "Source directory does not exist: #{@source_directory}"
+                unless Dir.exist?(Decldots.source_directory)
+                    raise Decldots::ValidationError, "Source directory does not exist: #{Decldots.source_directory}"
                 end
 
                 @links.each do |link_config|
@@ -102,19 +58,13 @@ module Decldots
             sig { params(link_config: T::Hash[Symbol, T.untyped]).void }
             def validate_link_config(link_config)
                 name = link_config[:name]
-                source = link_config[:source]
-                target = link_config[:target]
+                to = link_config[:to]
 
                 raise Decldots::ValidationError, "Link name cannot be empty" if name.nil? || name.to_s.strip.empty?
 
-                raise Decldots::ValidationError, "Link must have both source and target paths" unless source && target
+                raise Decldots::ValidationError, "Link must have both source and target paths" unless to
 
-                # Skip validation for templates as they might not exist yet
-                if link_config[:action] != :template && !File.exist?(source) && !File.directory?(source)
-                    raise Decldots::ValidationError, "Source path does not exist: #{source}"
-                end
-
-                target_dir = File.dirname(target)
+                target_dir = File.dirname(to)
                 return if Dir.exist?(target_dir)
 
                 begin

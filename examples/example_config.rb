@@ -59,8 +59,6 @@ config = Decldots.configure do |config|
     end
 
     config.dotfiles do
-        source_directory "~/.decldots/dotfiles"
-
         link "emacs", mutable: true
         link "nvim", mutable: true
 

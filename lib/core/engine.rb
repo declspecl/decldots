@@ -23,7 +23,7 @@ module Decldots
 
         sig { params(config: Decldots::DSL::Configuration).returns(T::Boolean) }
         def apply_configuration(config)
-            validate_configuration(config)
+            validate_configuration!(config)
 
             checkpoint = @state_manager.create_checkpoint
 
@@ -43,7 +43,7 @@ module Decldots
 
         sig { params(config: Decldots::DSL::Configuration).returns(T::Hash[String, T.untyped]) }
         def diff_configuration(config)
-            validate_configuration(config)
+            validate_configuration!(config)
 
             changes = T.let({}, T::Hash[String, T.untyped])
 
@@ -67,11 +67,9 @@ module Decldots
 
         private
 
-        sig { params(config: Decldots::DSL::Configuration).returns(T::Boolean) }
-        def validate_configuration(config)
+        sig { params(config: Decldots::DSL::Configuration).void }
+        def validate_configuration!(config)
             raise ValidationError, "Configuration cannot be nil" if config.nil?
-
-            true
         end
 
         sig do
@@ -187,7 +185,7 @@ module Decldots
                 diff = @dotfiles_manager.diff_link(
                     link_config[:name],
                     mutable: link_config[:mutable],
-                    source_directory: dotfiles.source_directory
+                    source_directory: Decldots.source_directory
                 )
                 changes[:links] << diff if diff[:action] != :no_change
             end

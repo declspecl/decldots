@@ -31,12 +31,11 @@ module Decldots
                 @dotfiles
             end
 
-            sig { returns(T::Boolean) }
+            sig { void }
             def validate!
                 validate_package_managers!
                 validate_programs!
                 validate_dotfiles!
-                true
             end
 
             private
@@ -45,8 +44,7 @@ module Decldots
             def validate_package_managers!
                 @package_managers.package_managers.each do |package_manager_name, package_config|
                     unless Decldots.package_managers.key?(package_manager_name)
-                        raise ValidationError, 
-                              "Unknown package manager: #{package_manager_name}"
+                        raise ValidationError, "Unknown package manager: #{package_manager_name}"
                     end
 
                     package_config.validate!
@@ -57,8 +55,7 @@ module Decldots
             def validate_programs!
                 @programs.programs.each do |program_name, program_config|
                     unless Decldots.programs.key?(program_name)
-                        raise ValidationError, 
-                              "Unknown program program: #{program_name}"
+                        raise ValidationError, "Unknown program program: #{program_name}"
                     end
 
                     program_config.validate!

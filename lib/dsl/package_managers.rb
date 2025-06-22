@@ -22,6 +22,7 @@ module Decldots
                 config = PackageManagerConfigs::HomebrewConfiguration.new
                 config.instance_eval(&block)
                 @package_managers[:homebrew] = config
+                Decldots.register_package_manager(:homebrew, Decldots::PackageManagers::Homebrew)
             end
         end
     end
