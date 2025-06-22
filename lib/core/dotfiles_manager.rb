@@ -8,36 +8,38 @@ module Decldots
     class DotfilesManager
         extend T::Sig
 
+        sig { returns(String) }
+        attr_reader :source_directory
+
+        sig { params(source_directory: String).void }
+        def initialize(source_directory)
+            @source_directory = source_directory
+        end
+
         sig do
             params(
                 name: String,
-                source_directory: String,
                 target: String,
-                mutable: T::Boolean
+                mutable: T::Boolean,
+                source_directory: T.nilable(String)
             ).returns(T::Hash[Symbol, T.untyped])
         end
-        def link_config(name, source_directory, target, mutable)
-            source_path = File.join(source_directory, name)
+        def link_config(name, target, mutable, source_directory: nil)
+            proper_source_directory = source_directory || @source_directory
+            source_path = File.join(proper_source_directory, name)
 
-            actual_source_path = Decldots.dry_run_path(source_path)
-            actual_target_path = Decldots.dry_run_path(target)
-
-            create_dummy_source_file(actual_source_path, name) if Decldots.dry_run? && !File.exist?(actual_source_path)
-
-            validate_link_operation(actual_source_path, actual_target_path)
+            validate_link_operation(source_path, target)
 
             if mutable
-                create_mutable_link(actual_source_path, 
-                                    actual_target_path, 
-                                    original_source: source_path,
-                                    original_target: target
-                                   )
+                create_mutable_link(
+                    source_path,
+                    target
+                )
             else
-                create_immutable_copy(actual_source_path, 
-                                      actual_target_path, 
-                                      original_source: source_path,
-                                      original_target: target
-                                     )
+                create_immutable_copy(
+                    source_path,
+                    target
+                )
             end
 
             {
@@ -58,8 +60,8 @@ module Decldots
             ).returns(T::Hash[Symbol, T.untyped])
         end
         def diff_link(name, mutable: false, source_directory: nil, target: nil)
-            source_directory ||= File.expand_path("~/.decldots/dotfiles")
-            source_path = File.join(source_directory, name)
+            proper_source_directory = source_directory || @source_directory
+            source_path = File.join(proper_source_directory, name)
             target_path = target || File.expand_path("~/.config/#{name}")
 
             if File.exist?(target_path) || File.symlink?(target_path)
@@ -79,8 +81,9 @@ module Decldots
             end
         end
 
-        sig { params(name: String, target: T.nilable(String)).void }
-        def unlink_config(name, target: nil)
+        sig { params(name: String, target: T.nilable(String), source_directory: T.nilable(String)).void }
+        def unlink_config(name, target: nil, source_directory: nil)
+            proper_source_directory = source_directory || @source_directory
             target_path = target || File.expand_path("~/.config/#{name}")
 
             if File.exist?(target_path) || File.symlink?(target_path)
@@ -161,39 +164,31 @@ module Decldots
         sig do
             params(
                 source_path: String,
-                target_path: String,
-                original_source: T.nilable(String),
-                original_target: T.nilable(String)
+                target_path: String
             ).void
         end
-        def create_mutable_link(source_path, target_path, original_source: nil, original_target: nil)
+        def create_mutable_link(source_path, target_path)
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            backup_existing_target(target_path) if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
+            backup_existing_target(target_path) if (File.exist?(target_path) || File.symlink?(target_path))
 
             FileUtils.ln_sf(source_path, target_path)
 
-            if Decldots.dry_run?
-                puts "Would create mutable symlink: #{original_target || target_path} -> #{original_source || source_path} (dry run: #{target_path} -> #{source_path})"
-            else
-                puts "Created mutable symlink: #{target_path} -> #{source_path}"
-            end
+            puts "Created mutable symlink: #{target_path} -> #{source_path}"
         end
 
         sig do
             params(
                 source_path: String,
-                target_path: String,
-                original_source: T.nilable(String),
-                original_target: T.nilable(String)
+                target_path: String
             ).void
         end
-        def create_immutable_copy(source_path, target_path, original_source: nil, original_target: nil)
+        def create_immutable_copy(source_path, target_path)
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
-            backup_existing_target(target_path) if !Decldots.dry_run? && (File.exist?(target_path) || File.symlink?(target_path))
+            backup_existing_target(target_path) if (File.exist?(target_path) || File.symlink?(target_path))
 
             if File.directory?(source_path)
                 FileUtils.cp_r(source_path, target_path)
@@ -203,11 +198,7 @@ module Decldots
                 operation = "file"
             end
 
-            if Decldots.dry_run?
-                puts "Would copy #{operation} (immutable): #{original_source || source_path} -> #{original_target || target_path} (dry run: #{source_path} -> #{target_path})"
-            else
-                puts "Copied #{operation} (immutable): #{source_path} -> #{target_path}"
-            end
+            puts "Copied #{operation} (immutable): #{source_path} -> #{target_path}"
         end
 
         sig { params(source_path: String, target_path: String).void }
@@ -250,22 +241,6 @@ module Decldots
             return false if File.directory?(file1) || File.directory?(file2)
 
             File.read(file1) == File.read(file2)
-        end
-
-        sig { params(source_path: String, name: String).void }
-        def create_dummy_source_file(source_path, name)
-            FileUtils.mkdir_p(File.dirname(source_path))
-
-            dummy_content = <<~CONTENT
-                # Dummy #{name} configuration file created for dry run mode
-                # This represents the source file that would be linked or copied
-                # Replace this with your actual #{name} configuration
-
-                # Example configuration content for #{name}
-            CONTENT
-
-            File.write(source_path, dummy_content)
-            puts "Created dummy source file for dry run: #{source_path}"
         end
     end
 end

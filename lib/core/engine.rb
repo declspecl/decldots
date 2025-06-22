@@ -15,10 +15,10 @@ module Decldots
         sig { returns(Decldots::DotfilesManager) }
         attr_reader :dotfiles_manager
 
-        sig { void }
-        def initialize
+        sig { params(source_directory: String).void }
+        def initialize(source_directory)
             @state_manager = T.let(Decldots::StateManager.new, Decldots::StateManager)
-            @dotfiles_manager = T.let(Decldots::DotfilesManager.new, Decldots::DotfilesManager)
+            @dotfiles_manager = T.let(Decldots::DotfilesManager.new(source_directory), Decldots::DotfilesManager)
         end
 
         sig { params(config: Decldots::DSL::Configuration).returns(T::Boolean) }
@@ -81,13 +81,6 @@ module Decldots
         end
         def apply_packages(packages)
             packages.each do |package_manager_name, package_config|
-                if Decldots.dry_run?
-                    puts "Would configure #{package_manager_name} packages:"
-                    puts "  Install: #{package_config.packages_to_install.join(", ")}" if package_config.packages_to_install.any?
-                    puts "  Uninstall: #{package_config.packages_to_uninstall.join(", ")}" if package_config.packages_to_uninstall.any?
-                    next
-                end
-
                 manager_class = Decldots.get_package_manager(package_manager_name)
                 manager = manager_class.new
 

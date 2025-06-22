@@ -35,11 +35,6 @@ module Decldots
 
             sig { params(command: String, capture_output: T::Boolean).returns(T.any(String, T::Boolean)) }
             def execute_command(command, capture_output: false)
-                if Decldots.dry_run?
-                    puts "Dry run: Would execute: #{command}"
-                    return capture_output ? "" : true
-                end
-
                 if capture_output
                     result = `#{command} 2>&1`
                     raise CommandError, "Command failed: #{command}" unless $CHILD_STATUS.success?

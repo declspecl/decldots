@@ -95,8 +95,6 @@ module Decldots
 
             sig { override.params(package: String).returns(T::Boolean) }
             def installed?(package)
-                return false if Decldots.dry_run?
-
                 execute_command("brew list #{package}", capture_output: true)
                 true
             rescue CommandError
@@ -105,8 +103,6 @@ module Decldots
 
             sig { params(cask: String).returns(T::Boolean) }
             def cask_installed?(cask)
-                return false if Decldots.dry_run?
-
                 execute_command("brew list --cask #{cask}", capture_output: true)
                 true
             rescue CommandError
@@ -115,8 +111,6 @@ module Decldots
 
             sig { params(tap: String).returns(T::Boolean) }
             def tap_exists?(tap)
-                return false if Decldots.dry_run?
-
                 taps = T.cast(execute_command("brew tap", capture_output: true), String)
                 taps.include?(tap)
             rescue CommandError

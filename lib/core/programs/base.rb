@@ -34,19 +34,11 @@ module Decldots
             def write_file(file_path, content, backup: true)
                 original_path = File.expand_path(file_path)
 
-                actual_path = Decldots.dry_run_path(original_path)
+                FileUtils.mkdir_p(File.dirname(original_path))
 
-                FileUtils.mkdir_p(File.dirname(actual_path))
+                backup_file(original_path) if backup && File.exist?(original_path)
 
-                backup_file(actual_path) if backup && !Decldots.dry_run? && File.exist?(actual_path)
-
-                File.write(actual_path, content)
-
-                if Decldots.dry_run?
-                    puts "Would create configuration file: #{original_path} (dry run: #{actual_path})"
-                else
-                    puts "Created configuration file: #{original_path}"
-                end
+                File.write(original_path, content)
             end
 
             sig { params(file_path: String).void }

@@ -4,7 +4,7 @@
 
 require_relative "../lib/decldots"
 
-Decldots.enable_dry_run
+Decldots.initialize("~/.dotfiles")
 
 config = Decldots.configure do |config|
     config.package_managers.homebrew do
