@@ -26,7 +26,7 @@ module Decldots
         def initialize
             require "xdg"
 
-            @state_dir = T.let(XDG::State.new.to_str, String)
+            @state_dir = T.let(XDG::Data.new.home.to_s, String)
             @state_file = T.let(File.join(state_dir, "state.json"), String)
             @checkpoints_dir = T.let(File.join(state_dir, "checkpoints"), String)
 

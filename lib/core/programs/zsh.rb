@@ -11,48 +11,36 @@ module Decldots
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
             def configure(options)
-                validate_options(options)
+                validate_options!(options)
 
-                config_file = shell_config_file
+                config_dir = Decldots.dry_run? ? Decldots.dry_run_directory : home_directory
+                config_file = File.join(config_dir, ".zshrc")
                 content = generate_shell_config(options)
                 write_file(config_file, content)
+                puts "Wrote config to #{config_file}"
 
                 configure_oh_my_zsh(options[:oh_my_zsh]) if options[:oh_my_zsh]
             end
 
-            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
-            def validate_options(options)
-                if options[:aliases] && !options[:aliases].is_a?(Hash)
-                    raise ValidationError, 
-                          "Shell aliases must be a hash"
-                end
-
-                if options[:oh_my_zsh] && !options[:oh_my_zsh].is_a?(Hash)
-                    raise ValidationError,
-                          "Oh My Zsh configuration must be a hash"
-                end
-
-                true
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
+            def validate_options!(options)
+                raise ValidationError, "Shell aliases must be a hash" if options[:aliases] && !options[:aliases].is_a?(Hash)
+                raise ValidationError, "Oh My Zsh configuration must be a hash" if options[:oh_my_zsh] && !options[:oh_my_zsh].is_a?(Hash)
             end
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(options)
-                config_file = shell_config_file
+                expected_config_file = File.join(home_directory, ".zshrc")
                 expected_content = generate_shell_config(options)
 
-                if file_matches_content?(config_file, expected_content)
-                    { action: :no_change, file: config_file }
+                if file_matches_content?(expected_config_file, expected_content)
+                    { action: :no_change, file: expected_config_file }
                 else
-                    { action: :update, file: config_file, changes: "Zsh configuration would be updated" }
+                    { action: :update, file: expected_config_file, changes: "Zsh configuration would be updated" }
                 end
             end
 
             private
-
-            sig { returns(String) }
-            def shell_config_file
-                File.join(home_directory, ".zshrc")
-            end
 
             sig { params(options: T::Hash[Symbol, T.untyped]).returns(String) }
             def generate_shell_config(options)
@@ -62,13 +50,9 @@ module Decldots
                 config_parts << ""
 
                 config_parts.concat(generate_zsh_options(options))
-
                 config_parts.concat(generate_environment_variables(options[:environment_variables])) if options[:environment_variables]
-
                 config_parts.concat(generate_aliases(options[:aliases])) if options[:aliases]
-
                 config_parts.concat(generate_oh_my_zsh_config(options[:oh_my_zsh])) if options[:oh_my_zsh]
-
                 config_parts.concat(generate_zsh_features(options))
 
                 if options[:shell_init]
@@ -184,7 +168,6 @@ module Decldots
                 return unless omz_config[:enable]
 
                 omz_dir = File.join(home_directory, ".oh-my-zsh")
-
                 return if Dir.exist?(omz_dir)
 
                 puts "Installing Oh My Zsh..."

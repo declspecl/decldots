@@ -12,10 +12,8 @@ module Decldots
             sig { abstract.params(options: T::Hash[Symbol, T.untyped]).void }
             def configure(options); end
 
-            sig { params(_options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
-            def validate_options(_options)
-                true
-            end
+            sig { abstract.params(_options: T::Hash[Symbol, T.untyped]).void }
+            def validate_options!(_options); end
 
             sig { params(_options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(_options)

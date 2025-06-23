@@ -11,31 +11,31 @@ module Decldots
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
             def configure(options)
-                validate_options(options)
+                validate_options!(options)
 
-                config_file = File.join(home_directory, ".gitconfig")
+                config_dir = Decldots.dry_run? ? Decldots.dry_run_directory : home_directory
+                config_file = File.join(config_dir, ".gitconfig")
+
                 content = generate_git_config(options)
                 write_file(config_file, content)
+                puts "Wrote config to #{config_file}"
             end
 
-            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
-            def validate_options(options)
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
+            def validate_options!(options)
                 raise ValidationError, "Git user name must be a string" if options[:user_name] && !options[:user_name].is_a?(String)
-
                 raise ValidationError, "Git user email must be a string" if options[:user_email] && !options[:user_email].is_a?(String)
-
-                true
             end
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(options)
-                config_file = File.join(home_directory, ".gitconfig")
+                expected_config_file = File.join(home_directory, ".gitconfig")
                 expected_content = generate_git_config(options)
 
-                if file_matches_content?(config_file, expected_content)
-                    { action: :no_change, file: config_file }
+                if file_matches_content?(expected_config_file, expected_content)
+                    { action: :no_change, file: expected_config_file }
                 else
-                    { action: :update, file: config_file, changes: "Git configuration would be updated" }
+                    { action: :update, file: expected_config_file, changes: "Git configuration would be updated" }
                 end
             end
 
@@ -49,17 +49,8 @@ module Decldots
                 config_sections << ""
 
                 config_sections.concat(generate_user_config(options))
-
-                config_sections.concat(generate_core_config(options))
-
                 config_sections.concat(generate_pull_config(options))
-
                 config_sections.concat(generate_push_config(options))
-
-                config_sections.concat(generate_credential_config(options))
-
-                config_sections.concat(generate_git_aliases(options))
-
                 config_sections.concat(generate_custom_config(options))
 
                 config_sections.join("\n")
@@ -80,33 +71,10 @@ module Decldots
             end
 
             sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
-            def generate_core_config(options)
-                lines = ["[core]"]
-
-                editor = options[:editor] || "vim"
-                lines << "\teditor = #{editor}"
-
-                autocrlf = options[:autocrlf] || "input"
-                lines << "\tautocrlf = #{autocrlf}"
-
-                lines << "\twhitespace = trailing-space,space-before-tab"
-
-                pager = options[:pager] || "less -R"
-                lines << "\tpager = #{pager}"
-
-                lines << ""
-                lines
-            end
-
-            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
             def generate_pull_config(options)
                 lines = ["[pull]"]
 
-                lines << if options[:pull_rebase]
-                             "\trebase = true"
-                         else
-                             "\trebase = false"
-                         end
+                lines << "\trebase = #{options[:pull_rebase]}" if options[:pull_rebase]
 
                 lines << ""
                 lines
@@ -116,63 +84,10 @@ module Decldots
             def generate_push_config(options)
                 lines = ["[push]"]
 
-                default_push = options[:push_default] || "simple"
-                lines << "\tdefault = #{default_push}"
-
-                lines << "\tautoSetupRemote = true"
+                lines << "\tdefault = #{options[:push_default]}" if options[:push_default]
+                lines << "\tautoSetupRemote = true" if options[:auto_setup_remote]
 
                 lines << ""
-                lines
-            end
-
-            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
-            def generate_credential_config(options)
-                lines = []
-
-                if options[:credential_helper]
-                    lines << "[credential]"
-                    lines << "\thelper = #{options[:credential_helper]}"
-
-                    lines << "\tcredentialStore = #{options[:credential_store]}" if options[:credential_store]
-
-                    lines << ""
-                end
-
-                if options[:github_username]
-                    lines << "[credential \"https://github.com\"]"
-                    lines << "\tusername = #{options[:github_username]}"
-                    lines << ""
-                end
-
-                lines
-            end
-
-            sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
-            def generate_git_aliases(options)
-                lines = []
-
-                default_aliases = {
-                    "st" => "status",
-                    "co" => "checkout",
-                    "br" => "branch",
-                    "ci" => "commit",
-                    "df" => "diff",
-                    "lg" => "log --oneline --graph --decorate --all",
-                    "last" => "log -1 HEAD",
-                    "unstage" => "reset HEAD --",
-                    "visual" => "!gitk"
-                }
-
-                aliases = default_aliases.merge(options[:aliases] || {})
-
-                if aliases.any?
-                    lines << "[alias]"
-                    aliases.each do |name, command|
-                        lines << "\t#{name} = #{command}"
-                    end
-                    lines << ""
-                end
-
                 lines
             end
 
@@ -186,37 +101,11 @@ module Decldots
                     lines << ""
                 end
 
-                lines << "[merge]"
-                merge_tool = options[:merge_tool] || "vimdiff"
-                lines << "\ttool = #{merge_tool}"
-                lines << ""
-
-                lines << "[diff]"
-                lines << "\tcolorMoved = zebra"
-                lines << ""
-
-                lines << "[color]"
-                lines << "\tui = auto"
-                lines << ""
-
-                lines << "[color \"branch\"]"
-                lines << "\tcurrent = yellow reverse"
-                lines << "\tlocal = yellow"
-                lines << "\tremote = green"
-                lines << ""
-
-                lines << "[color \"diff\"]"
-                lines << "\tmeta = yellow bold"
-                lines << "\tfrag = magenta bold"
-                lines << "\told = red bold"
-                lines << "\tnew = green bold"
-                lines << ""
-
-                lines << "[color \"status\"]"
-                lines << "\tadded = yellow"
-                lines << "\tchanged = green"
-                lines << "\tuntracked = cyan"
-                lines << ""
+                if options[:merge_tool]
+                    lines << "[merge]"
+                    lines << "\ttool = #{options[:merge_tool]}"
+                    lines << ""
+                end
 
                 lines
             end

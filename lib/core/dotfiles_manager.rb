@@ -13,7 +13,7 @@ module Decldots
 
         sig { params(source_directory: String).void }
         def initialize(source_directory)
-            @source_directory = source_directory
+            @source_directory = T.let(File.expand_path(source_directory), String)
         end
 
         sig { params(link: Link).returns(T::Hash[Symbol, T.untyped]) }
@@ -75,6 +75,9 @@ module Decldots
 
         sig { params(source_path: String, target_path: String).void }
         def create_link(source_path, target_path)
+            source_path = File.expand_path(source_path)
+            target_path = File.expand_path(target_path)
+
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
@@ -87,6 +90,9 @@ module Decldots
 
         sig { params(source_path: String, target_path: String).void }
         def create_copy(source_path, target_path)
+            source_path = File.expand_path(source_path)
+            target_path = File.expand_path(target_path)
+
             target_dir = File.dirname(target_path)
             FileUtils.mkdir_p(target_dir) unless Dir.exist?(target_dir)
 
@@ -105,6 +111,9 @@ module Decldots
 
         sig { params(source_path: String, target_path: String).void }
         def validate_link_operation!(source_path, target_path)
+            source_path = File.expand_path(source_path)
+            target_path = File.expand_path(target_path)
+
             unless File.exist?(source_path) || File.directory?(source_path)
                 raise ConfigurationError, "Source path does not exist: #{source_path}"
             end
@@ -123,6 +132,8 @@ module Decldots
 
         sig { params(target_path: String).void }
         def backup_existing_target(target_path)
+            target_path = File.expand_path(target_path)
+
             return unless File.exist?(target_path) || File.symlink?(target_path)
 
             timestamp = Time.now.strftime("%Y%m%d_%H%M%S")
@@ -139,6 +150,9 @@ module Decldots
 
         sig { params(file1: String, file2: String).returns(T::Boolean) }
         def files_identical?(file1, file2)
+            file1 = File.expand_path(file1)
+            file2 = File.expand_path(file2)
+
             return false unless File.exist?(file1) && File.exist?(file2)
             return false if File.directory?(file1) || File.directory?(file2)
 
@@ -165,8 +179,8 @@ module Decldots
         def initialize(name, action, to, from: nil)
             @name = name
             @action = action
-            @to = to
-            @from = T.let(from || File.join(Decldots.source_directory, name), String)
+            @to = T.let(File.expand_path(to), String)
+            @from = T.let(File.expand_path(from || File.join(Decldots.source_directory, name)), String)
         end
     end
 end

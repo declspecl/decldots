@@ -11,41 +11,33 @@ module Decldots
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
             def configure(options)
-                validate_options(options)
+                validate_options!(options)
 
-                config_file = shell_config_file
+                config_dir = Decldots.dry_run? ? Decldots.dry_run_directory : home_directory
+                config_file = File.join(config_dir, ".bashrc")
                 content = generate_shell_config(options)
                 write_file(config_file, content)
+                puts "Wrote config to #{config_file}"
             end
 
-            sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Boolean) }
-            def validate_options(options)
-                if options[:aliases] && !options[:aliases].is_a?(Hash)
-                    raise ValidationError, 
-                          "Shell aliases must be a hash"
-                end
-
-                true
+            sig { override.params(options: T::Hash[Symbol, T.untyped]).void }
+            def validate_options!(options)
+                raise ValidationError, "Shell aliases must be a hash" if options[:aliases] && !options[:aliases].is_a?(Hash)
             end
 
             sig { override.params(options: T::Hash[Symbol, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
             def diff_configuration(options)
-                config_file = shell_config_file
+                expected_config_file = File.join(home_directory, ".bashrc")
                 expected_content = generate_shell_config(options)
 
-                if file_matches_content?(config_file, expected_content)
-                    { action: :no_change, file: config_file }
+                if file_matches_content?(expected_config_file, expected_content)
+                    { action: :no_change, file: expected_config_file }
                 else
-                    { action: :update, file: config_file, changes: "Bash configuration would be updated" }
+                    { action: :update, file: expected_config_file, changes: "Bash configuration would be updated" }
                 end
             end
 
             private
-
-            sig { returns(String) }
-            def shell_config_file
-                File.join(home_directory, ".bashrc")
-            end
 
             sig { params(options: T::Hash[Symbol, T.untyped]).returns(String) }
             def generate_shell_config(options)

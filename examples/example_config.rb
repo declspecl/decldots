@@ -4,12 +4,11 @@
 
 require_relative "../lib/decldots"
 
-Decldots.initialize("~/.dotfiles")
+Decldots.initialize("~/.dotfiles/home")
+Decldots.enable_dry_run
 
 config = Decldots.configure do |config|
     config.package_managers.homebrew do
-        tap "homebrew/cask"
-
         install "git", "curl", "wget", "jq"
         install "zsh-autosuggestions", "zsh-syntax-highlighting"
 
@@ -37,9 +36,9 @@ config = Decldots.configure do |config|
         end
 
         shell_init <<~SHELL
-                setopt ignore_eof
-            #{"    "}
-                function fzkill() {
+            setopt ignore_eof
+
+            function fzkill() {
                 ps aux | fzf --height 40% --layout=reverse --prompt="Select process to kill: " | awk '{print $2}' | xargs -r sudo kill
             }
 
@@ -59,14 +58,14 @@ config = Decldots.configure do |config|
     end
 
     config.dotfiles do
-        link "emacs", "~/.emacs.d"
-        link "nvim", "~/.config/nvim"
-        link "hypr", "~/.config/hypr"
-        link "kitty", "~/.config/kitty"
-        link "mako", "~/.config/mako"
-        link "wofi", "~/.config/wofi"
-        link "waybar", "~/.config/waybar"
-        link "wlogout", "~/.config/wlogout"
+        link "emacs", "~/.decldotstest/.emacs.d"
+        link "nvim", "~/.decldotstest/.config/nvim"
+        link "hypr", "~/.decldotstest/.config/hypr"
+        link "kitty", "~/.decldotstest/.config/kitty"
+        link "mako", "~/.decldotstest/.config/mako"
+        link "wofi", "~/.decldotstest/.config/wofi"
+        link "waybar", "~/.decldotstest/.config/waybar"
+        link "wlogout", "~/.decldotstest/.config/wlogout"
     end
 end
 

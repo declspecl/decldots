@@ -25,7 +25,7 @@ module Decldots
         def apply_configuration!(config)
             validate_configuration!(config)
 
-            checkpoint = @state_manager.create_checkpoint
+            checkpoint = @state_manager.create_checkpoint unless Decldots.dry_run?
 
             begin
                 apply_package_managers(config.package_managers.package_managers) if config.package_managers.package_managers.any?
@@ -35,7 +35,7 @@ module Decldots
                 @state_manager.save_state
             rescue StandardError => e
                 puts "Error applying configuration: #{e.message}"
-                @state_manager.rollback_to!(checkpoint)
+                @state_manager.rollback_to!(T.cast(checkpoint, String))
             end
         end
 
@@ -71,18 +71,35 @@ module Decldots
                         package_config, 
                         Decldots::DSL::PackageManagerConfigs::HomebrewConfiguration
                     )
-                    homebrew_manager.add_taps(homebrew_config.taps) if homebrew_config.taps.any?
-                    homebrew_manager.install_casks(homebrew_config.casks) if homebrew_config.casks.any?
+
+                    if Decldots.dry_run?
+                        puts "Would add taps: #{homebrew_config.taps.join(", ")}" if homebrew_config.taps.any?
+                        puts "Would install casks: #{homebrew_config.casks.join(", ")}" if homebrew_config.casks.any?
+                    else
+                        puts "Adding taps: #{homebrew_config.taps.join(", ")}" if homebrew_config.taps.any?
+                        homebrew_manager.add_taps(homebrew_config.taps) if homebrew_config.taps.any?
+
+                        puts "Installing casks: #{homebrew_config.casks.join(", ")}" if homebrew_config.casks.any?
+                        homebrew_manager.install_casks(homebrew_config.casks) if homebrew_config.casks.any?
+                    end
                 end
 
                 if package_config.packages_to_install.any?
-                    puts "Installing packages: #{package_config.packages_to_install.join(", ")}"
-                    manager.install(package_config.packages_to_install)
+                    if Decldots.dry_run?
+                        puts "Would install packages: #{package_config.packages_to_install.join(", ")}"
+                    else
+                        puts "Installing packages: #{package_config.packages_to_install.join(", ")}"
+                        manager.install(package_config.packages_to_install)
+                    end
                 end
 
                 if package_config.packages_to_uninstall.any?
-                    puts "Uninstalling packages: #{package_config.packages_to_uninstall.join(", ")}"
-                    manager.uninstall(package_config.packages_to_uninstall)
+                    if Decldots.dry_run?
+                        puts "Would uninstall packages: #{package_config.packages_to_uninstall.join(", ")}"
+                    else
+                        puts "Uninstalling packages: #{package_config.packages_to_uninstall.join(", ")}"
+                        manager.uninstall(package_config.packages_to_uninstall)
+                    end
                 end
             end
         end
@@ -101,7 +118,7 @@ module Decldots
         sig { params(dotfiles: Decldots::DSL::Dotfiles).void }
         def apply_dotfiles(dotfiles)
             dotfiles.links.each do |link|
-                puts "Linking dotfile: #{link.name})"
+                puts "Linking dotfile: #{link.name}"
                 @dotfiles_manager.link_config(link)
             end
         end
