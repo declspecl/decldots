@@ -22,6 +22,11 @@ module Decldots
                     @options[:enable_completion] = enabled
                 end
 
+                sig { params(size: Integer).void }
+                def history_size(size)
+                    @options[:history_size] = size
+                end
+
                 sig { params(name: Symbol, command: String).void }
                 def set_alias(name, command)
                     @aliases[name] = command

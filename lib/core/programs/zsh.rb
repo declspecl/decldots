@@ -92,6 +92,12 @@ module Decldots
                     lines << "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null || true"
                 end
 
+                if options[:enable_autocd]
+                    lines << ""
+                    lines << "# Enable autocd"
+                    lines << "setopt AUTO_CD"
+                end
+
                 lines << ""
                 lines
             end

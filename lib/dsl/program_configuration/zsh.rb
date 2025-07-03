@@ -32,6 +32,11 @@ module Decldots
                     @options[:enable_syntax_highlighting] = enabled
                 end
 
+                sig { params(enabled: T::Boolean).void }
+                def enable_autocd(enabled: true)
+                    @options[:enable_autocd] = enabled
+                end
+
                 sig { params(name: Symbol, command: String).void }
                 def set_alias(name, command)
                     @aliases[name] = command

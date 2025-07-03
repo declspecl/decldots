@@ -47,11 +47,8 @@ module Decldots
                 config_parts << ""
 
                 config_parts.concat(generate_bash_options(options))
-
                 config_parts.concat(generate_environment_variables(options[:environment_variables])) if options[:environment_variables]
-
                 config_parts.concat(generate_aliases(options[:aliases])) if options[:aliases]
-
                 config_parts.concat(generate_bash_features(options))
 
                 if options[:shell_init]
@@ -105,12 +102,13 @@ module Decldots
             end
 
             sig { params(options: T::Hash[Symbol, T.untyped]).returns(T::Array[String]) }
-            def generate_bash_features(_options)
+            def generate_bash_features(options)
                 lines = []
 
                 lines << "# Bash-specific features"
-                lines << "HISTSIZE=10000"
-                lines << "HISTFILESIZE=20000"
+                history_size = options[:history_size] || 10_000
+                lines << "HISTSIZE=#{history_size}"
+                lines << "HISTFILESIZE=#{history_size}"
                 lines << "shopt -s histappend"
 
                 lines << ""
